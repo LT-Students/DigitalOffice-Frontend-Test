@@ -17,7 +17,5 @@ namespace GUITestProject
         public string RightsService { get; set; }
         public string TimeService { get; set; }
         public string UserService { get; set; }
-        public string Kernel { get; set; }
-        public string UnitTestKernel { get; set; }
     }
 }
