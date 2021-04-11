@@ -5,6 +5,8 @@ using System.IO;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Threading;
 
 namespace GUITestProject
 {
@@ -50,110 +52,92 @@ namespace GUITestProject
                 .Select(x => (ServiceName: x.Name, Url: (string)x.GetValue(_serviceUrls)))
                 .ToList();
 
-            // FOR TESTS
-            //servicesInfo = new List<(string, string)>
-            //{
-            //    ("AuthService", @"https://github.com/LT-Students/DigitalOffice-AuthService")
-            //};
-
-            Parallel.ForEach(servicesInfo, serviceInfo =>
+            foreach (var (ServiceName, Url) in servicesInfo)
             {
-                var processName = "git";
+                var pathToService = $"{servicesPath}Services\\{ServiceName}";
 
-                var branchArgument = "-b develop";
-
-                var pathToService = $"{servicesPath}Services\\{serviceInfo.ServiceName}";
+                var process = new Process()
+                {
+                    StartInfo = new ProcessStartInfo
+                    {
+                        FileName = "git",
+                        CreateNoWindow = false
+                    }
+                };
 
                 if (!Directory.Exists(pathToService))
                 {
-                    RunProcess(processName, $"clone {branchArgument} {serviceInfo.Url} {pathToService}");
+                    process.StartInfo.Arguments = $"clone -b develop {Url} {pathToService}";
+
+                    RunProcess(process).WaitForExit();
                 }
                 else
                 {
-                    RunProcess(processName, $"fetch {serviceInfo.Url}");
+                    process.StartInfo.Arguments = $"pull {Url}";
+
+                    RunProcess(process).WaitForExit();
                 }
-            });
+            };
 
-            Parallel.ForEach(servicesInfo, serviceInfo =>
+            foreach (var (ServiceName, Url) in servicesInfo)
             {
-                var buildArguments = "/p:configuration=Release";
+                var pathToService = $"{servicesPath}Services\\{ServiceName}";
 
-                var slnName = $"LT.DigitalOffice.{serviceInfo.ServiceName}.sln";
+                var process = new Process()
+                {
+                    StartInfo = new ProcessStartInfo
+                    {
+                        FileName = "dotnet",
+                        Arguments = "build --configuration Release",
+                        WorkingDirectory = $"{servicesPath}Services\\{ServiceName}",
+                        CreateNoWindow = false
+                    }
+                };
 
-                var pathToSln = $"{servicesPath}Services\\{serviceInfo.ServiceName}\\{slnName}";
+                RunProcess(process).WaitForExit();
+            };
 
-                //var pathToMSBuild = @"C:\Windows\Microsoft.NET\Framework\v4.0.30319";
-                var pathToMSBuild = @"C:\Windows\Microsoft.NET\Framework64\v4.0.30319";
-
-                var mSBuild = pathToMSBuild + @"\MSBuild.exe";
-
-                var buildPath = $"{servicesPath}Services\\{serviceInfo.ServiceName}\\src\\{serviceInfo.ServiceName}\\{serviceInfo.ServiceName}.csproj";
-
-                //RunProcess("cmd", $"msbuild -t:build -restore {pathToSln} {buildArguments}");
-                //RunProcess("cmd", $"cd {pathToMSBuild} msbuild -t:build -restore {pathToSln} {buildArguments}");
-                //RunProcess(mSBuild, $"-t:restore {pathToSln}");
-                //RunProcess(mSBuild, $"-t:build {pathToSln} {buildArguments}");
-                //RunProcess(mSBuild, $"msbuild -t:build -restore {pathToSln} {buildArguments}");
-                //RunProcess(mSBuild, $"msbuild -restore {pathToSln}");
-                //RunProcess(mSBuild, $"msbuild -t:build {pathToSln} {buildArguments}");
-                //RunProcess("cmd", $"cd {pathToMSBuild} msbuild -t:build -restore {pathToSln} {buildArguments}");
-                //var mSBuild = pathToMSBuild + @"\MSBuild.exe";
-                //RunProcess("cmd", $"{mSBuild} -t:build -restore {pathToSln} {buildArguments}");
-                //RunProcess(mSBuild, $"msbuild -t:-build {buildPath} {buildArguments}");
-            });
-
-            Parallel.ForEach(servicesInfo, serviceInfo =>
+            foreach (var (ServiceName, Url) in servicesInfo)
             {
-                var exeName = $"LT.DigitalOffice.{serviceInfo.ServiceName}.exe";
+                var pathToExe = $"{servicesPath}Services\\{ServiceName}" +
+                    $"\\src\\{ServiceName}\\bin\\Release\\net5.0";
 
-                var pathToExe = $"{servicesPath}Services\\{serviceInfo.ServiceName}" +
-                    $"\\src\\{serviceInfo.ServiceName}\\bin\\Debug\\netcoreapp3.1\\{exeName}";
+                var exeName = $"LT.DigitalOffice.{ServiceName}.exe";
 
-                //var pathToExe = $"{servicesPath}Services\\{serviceInfo.ServiceName}" +
-                //    $"\\src\\{serviceInfo.ServiceName}\\bin\\Debug\\netcoreapp3.1";
+                var process = new Process()
+                {
+                    StartInfo = new ProcessStartInfo
+                    {
+                        FileName = $"{pathToExe}\\{exeName}",
+                        WorkingDirectory = pathToExe,
+                        CreateNoWindow = true,
+                        RedirectStandardOutput = true,
+                        RedirectStandardInput = true,
+                        RedirectStandardError = true
+                    }
+                };
 
-                //RunProcess("cmd", $"{pathToExe}");
+                process = RunProcess(process);
 
-                //var process = new Process { StartInfo = new ProcessStartInfo { WorkingDirectory = pathToExe, FileName = exeName } };
-                //process.Start();
-            });
+                Thread.Sleep(new TimeSpan(0, 1, 0));
+
+                process.Kill();
+            };
 
             Console.ReadKey();
         }
 
-        private static void RunProcess(string processName, string arguments)
+        private static Process RunProcess(Process process)
         {
-            var process = new Process()
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = processName,
-                    Arguments = arguments,
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true
-                }
-            };
+            process.StartInfo.EnvironmentVariables["ASPNETCORE_ENVIRONMENT"] = "Development";
 
-            var command = $"{processName} {arguments}";
+            var command = $"{process.StartInfo.FileName} {process.StartInfo.Arguments}";
 
             try
             {
                 process.Start();
 
                 _logger.LogInformation($"Command successfully invoked: '{command}'");
-
-                if (processName != "cmd") // TODO: How to know when to kill the cmd process? git dies by himself
-                {
-                    string output = process.StandardOutput.ReadToEnd();
-                    if (!string.IsNullOrEmpty(output))
-                    {
-                        _logger.LogInformation($"The command '{command}' result: '{output}'");
-                    }
-
-                    process.WaitForExit();
-                }
             }
             catch (Exception e)
             {
@@ -161,6 +145,8 @@ namespace GUITestProject
 
                 _logger.LogWarning(e, e.Message);
             }
+
+            return process;
         }
 
         #endregion
