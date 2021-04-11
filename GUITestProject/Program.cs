@@ -97,6 +97,8 @@ namespace GUITestProject
                 RunProcess(process).WaitForExit();
             };
 
+            List<Process> runningServices = new();
+
             foreach (var (ServiceName, Url) in servicesInfo)
             {
                 var pathToExe = $"{servicesPath}Services\\{ServiceName}" +
@@ -117,12 +119,12 @@ namespace GUITestProject
                     }
                 };
 
-                process = RunProcess(process);
-
-                Thread.Sleep(new TimeSpan(0, 1, 0));
-
-                process.Kill();
+                runningServices.Add(RunProcess(process));
             };
+
+            Thread.Sleep(new TimeSpan(0, 1, 0));
+
+            runningServices.ForEach(x => x.Kill());
 
             Console.ReadKey();
         }
