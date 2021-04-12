@@ -14,11 +14,26 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.HealthCheck", "Tests.HealthCheck\Tests.HealthCheck.csproj", "{C007A86D-C0A2-4DDA-A9BB-20651147ECA5}"
+EndProject
 Global
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A2257EDB-7202-462B-9B51-D2AE6AB3B804}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{C007A86D-C0A2-4DDA-A9BB-20651147ECA5} = {3D9A71C3-2A3A-48C3-BED9-738A4CC4B204}
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C007A86D-C0A2-4DDA-A9BB-20651147ECA5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C007A86D-C0A2-4DDA-A9BB-20651147ECA5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C007A86D-C0A2-4DDA-A9BB-20651147ECA5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C007A86D-C0A2-4DDA-A9BB-20651147ECA5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 EndGlobal
