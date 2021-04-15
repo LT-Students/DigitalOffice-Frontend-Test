@@ -4,19 +4,19 @@ using System.Linq;
 using System.IO;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.Threading;
 
 namespace GUITestProject
 {
     public class Program
     {
         private static ILogger<Program> _logger;
-        private static ServiceUrls _serviceUrls;
+        private static List<(string ServiceName, string Url)> _servicesInfo;
+        private static List<Process> _runningServices = new();
+
+        private static string ServicesPath => Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..\\..\\..\\..\\"));
 
         #region private methods
-
         private static void SetLogger()
         {
             using var loggerFactory = LoggerFactory.Create(builder =>
@@ -37,24 +37,22 @@ namespace GUITestProject
             configurationBuilder.AddJsonFile(pathToAppsettings + "appsettings.json");
             IConfiguration configuration = configurationBuilder.Build();
 
-            _serviceUrls = configuration
+            var serviceUrls = configuration
                 .GetSection(nameof(ServiceUrls))
                 .Get<ServiceUrls>();
-        }
 
-        static public void CloneBuildRunRepositories()
-        {
-            var servicesPath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..\\..\\..\\..\\"));
-
-            var servicesInfo = _serviceUrls
+            _servicesInfo = serviceUrls
                 .GetType()
                 .GetProperties()
-                .Select(x => (ServiceName: x.Name, Url: (string)x.GetValue(_serviceUrls)))
+                .Select(x => (ServiceName: x.Name, Url: (string)x.GetValue(serviceUrls)))
                 .ToList();
+        }
 
-            foreach (var (ServiceName, Url) in servicesInfo)
+        private static void CloneOrFetchServices()
+        {
+            foreach (var (ServiceName, Url) in _servicesInfo)
             {
-                var pathToService = $"{servicesPath}Services\\{ServiceName}";
+                var pathToService = $"{ServicesPath}Services\\{ServiceName}";
 
                 var process = new Process()
                 {
@@ -78,30 +76,32 @@ namespace GUITestProject
                     RunProcess(process).WaitForExit();
                 }
             };
+        }
 
-            foreach (var (ServiceName, Url) in servicesInfo)
+        private static void BuidServices()
+        {
+            foreach (var (ServiceName, Url) in _servicesInfo)
             {
-                var pathToService = $"{servicesPath}Services\\{ServiceName}";
-
                 var process = new Process()
                 {
                     StartInfo = new ProcessStartInfo
                     {
                         FileName = "dotnet",
                         Arguments = "build --configuration Release",
-                        WorkingDirectory = $"{servicesPath}Services\\{ServiceName}",
+                        WorkingDirectory = $"{ServicesPath}Services\\{ServiceName}",
                         CreateNoWindow = false
                     }
                 };
 
                 RunProcess(process).WaitForExit();
             };
+        }
 
-            List<Process> runningServices = new();
-
-            foreach (var (ServiceName, Url) in servicesInfo)
+        private static void RunServices()
+        {
+            foreach (var (ServiceName, Url) in _servicesInfo)
             {
-                var pathToExe = $"{servicesPath}Services\\{ServiceName}" +
+                var pathToExe = $"{ServicesPath}Services\\{ServiceName}" +
                     $"\\src\\{ServiceName}\\bin\\Release\\net5.0";
 
                 var exeName = $"LT.DigitalOffice.{ServiceName}.exe";
@@ -119,14 +119,14 @@ namespace GUITestProject
                     }
                 };
 
-                runningServices.Add(RunProcess(process));
-            };
+                _runningServices.Add(RunProcess(process));
+            };  
+        }
 
-            Thread.Sleep(new TimeSpan(0, 1, 0));
-
-            runningServices.ForEach(x => x.Kill());
-
-            Console.ReadKey();
+        private static void KillServicesProcesses()
+        {
+            _runningServices.ForEach(x => x.Kill());
+            _runningServices.Clear();
         }
 
         private static Process RunProcess(Process process)
@@ -139,11 +139,11 @@ namespace GUITestProject
             {
                 process.Start();
 
-                _logger.LogInformation($"Command successfully invoked: '{command}'");
+                _logger.LogInformation($"Command '{command}' successfully invoked for proccess named {process.ProcessName}");
             }
             catch (Exception e)
             {
-                _logger.LogWarning($"Command failed invoked: '{command}'");
+                _logger.LogWarning($"Command '{command}' failed invoked for proccess named {process.ProcessName}");
 
                 _logger.LogWarning(e, e.Message);
             }
@@ -160,7 +160,14 @@ namespace GUITestProject
             SetLogger();
             SetServiceUrls();
 
-            CloneBuildRunRepositories();
+            CloneOrFetchServices();
+            BuidServices();
+            RunServices();
+
+            Console.WriteLine("Enter a key to kill all processes.");
+            Console.ReadKey();
+
+            KillServicesProcesses();
         }
     }
 }
