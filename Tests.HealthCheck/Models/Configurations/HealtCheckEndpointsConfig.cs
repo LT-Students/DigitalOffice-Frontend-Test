@@ -2,8 +2,10 @@ using LT.DigitalOffice.Kernel.Configurations;
 
 namespace Tests.HealthCheck.Models.Configurations
 {
-    public class RabbitMqConfig : BaseRabbitMqConfig
+    public class HealthCheckEndpointsConfig
     {
+        public const string SectionName = "HealthCheckEndpoints";
+        
         public string UserHealthCheckEndpoint { get; set; }
         public string ProjectHealthCheckEndpoint { get; set; }
         public string TimeHealthCheckEndpoint { get; set; }
