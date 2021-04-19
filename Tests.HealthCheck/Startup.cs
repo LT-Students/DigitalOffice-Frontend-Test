@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 using HealthChecks.UI.Core;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -21,6 +22,7 @@ namespace Tests.HealthCheck
         private readonly HealthCheckEndpointsConfig _healthCheckConfig;
         private readonly SmtpCredentialsOptions _smtpCredentialsOptions;
         private static List<(string ServiceName, string Uri)> _servicesInfo;
+        private static string[] _emails;
 
         private string GetTokenFromAuth() 
         {
@@ -65,6 +67,17 @@ namespace Tests.HealthCheck
             _smtpCredentialsOptions = Configuration
                 .GetSection(SmtpCredentialsOptions.SectionName)
                 .Get<SmtpCredentialsOptions>();
+            
+            _emails = Configuration
+                .GetSection("SendEmailList")
+                .Get<string[]>();
+
+            if (!int.TryParse(Environment.GetEnvironmentVariable("SendIntervalInMinutes"), out var interval))
+            {
+                interval = Configuration.GetSection("SendIntervalInMinutes").Get<int>();
+            }
+
+            Task.Run(() => EmailSender.Start(interval, _emails, _smtpCredentialsOptions));
         }
 
         public void ConfigureServices(IServiceCollection services)
@@ -85,11 +98,7 @@ namespace Tests.HealthCheck
                                 var failing = report.Entries
                                     .Where(e => e.Value.Status != UIHealthStatus.Healthy);
 
-                                string[] emailSettings = Configuration
-                                    .GetSection("SendEmailSettings")
-                                    .Get<string[]>();
-
-                                EmailSender.SendEmail(emailSettings, _smtpCredentialsOptions, report);
+                                EmailSender.AddReport(report);
 
                                 return $"{failing.Count()} healthchecks are failing";
                             });
@@ -124,10 +133,6 @@ namespace Tests.HealthCheck
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-#if RELEASE
-            app.UseHttpsRedirection();
-#endif
-
             app.UseRouting();
 
             app.UseEndpoints(endpoints =>

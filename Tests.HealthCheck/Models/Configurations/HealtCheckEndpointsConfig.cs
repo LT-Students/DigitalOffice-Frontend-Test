@@ -1,5 +1,3 @@
-using LT.DigitalOffice.Kernel.Configurations;
-
 namespace Tests.HealthCheck.Models.Configurations
 {
     public class HealthCheckEndpointsConfig
