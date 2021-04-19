@@ -1,4 +1,4 @@
-namespace Tests.HealthCheck.Models
+namespace Tests.HealthCheck.Models.Configurations
 {
     public class AuthLoginConfig
     {

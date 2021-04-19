@@ -1,34 +1,41 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
+using HealthChecks.UI.Core;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using LT.DigitalOffice.Kernel.Configurations;
 using Tests.HealthCheck.Models;
 using Tests.HealthCheck.Models.Configurations;
 
-//TODO add reflex to config
 namespace Tests.HealthCheck
 {
     public class Startup
     {
-        private string GetTokenFromAuth()
+        public IConfiguration Configuration { get; }
+
+        private readonly HealthCheckEndpointsConfig _healthCheckConfig;
+        private readonly SmtpCredentialsOptions _smtpCredentialsOptions;
+        private static List<(string ServiceName, string Uri)> _servicesInfo;
+
+        private string GetTokenFromAuth() 
         {
             AuthLoginConfig authLoginConfig = Configuration
                 .GetSection(AuthLoginConfig.SectionName)
                 .Get<AuthLoginConfig>();
 
-            HttpWebRequest httpRequest = (HttpWebRequest)WebRequest
+            HttpWebRequest httpRequest = (HttpWebRequest) WebRequest
                 .Create(authLoginConfig.UriString);
 
             string login = "admin";
             string password = "%4fgT1_3ioR";
             string stringData = $"{{ \"LoginData\": \"{login}\",\"Password\": \"{password}\" }}";
-            
-            byte[] data = Encoding.Default.GetBytes(stringData); 
+
+            byte[] data = Encoding.Default.GetBytes(stringData);
 
             httpRequest.Method = "POST";
             httpRequest.ContentType = "application/json; charset=utf-8";
@@ -40,14 +47,13 @@ namespace Tests.HealthCheck
             using HttpWebResponse httpResponse = (HttpWebResponse) httpRequest.GetResponse();
             using Stream stream = httpResponse.GetResponseStream();
             using StreamReader reader = new StreamReader(stream);
-            
+
             string response = reader.ReadToEnd();
             var token = response.Split("\"token\":")[^1].Trim('}').Trim('\"');
-            
+
             return token;
         }
-        
-        private readonly HealthCheckEndpointsConfig _healthCheckConfig;
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -55,9 +61,11 @@ namespace Tests.HealthCheck
             _healthCheckConfig = Configuration
                 .GetSection(HealthCheckEndpointsConfig.SectionName)
                 .Get<HealthCheckEndpointsConfig>();
-        }
 
-        public IConfiguration Configuration { get; }
+            _smtpCredentialsOptions = Configuration
+                .GetSection(SmtpCredentialsOptions.SectionName)
+                .Get<SmtpCredentialsOptions>();
+        }
 
         public void ConfigureServices(IServiceCollection services)
         {
@@ -68,49 +76,48 @@ namespace Tests.HealthCheck
             services
                 .AddHealthChecksUI(setupSettings: setup =>
                 {
-                    string evaluationString = Environment.GetEnvironmentVariable("EvaluationTimeInSeconds");
-                    if (!string.IsNullOrEmpty(evaluationString) 
-                        && int.TryParse(evaluationString, out int evaluationSeconds))
+                    setup
+                        .AddWebhookNotification("", uri: "",
+                            payload: "{ message: \"Webhook report for [[LIVENESS]]: [[FAILURE]] - Description: [[DESCRIPTIONS]]\"}",
+                            restorePayload: "{ message: \"[[LIVENESS]] is back to life\"}",
+                            customDescriptionFunc: report =>
+                            {
+                                var failing = report.Entries
+                                    .Where(e => e.Value.Status != UIHealthStatus.Healthy);
+
+                                string[] emailSettings = Configuration
+                                    .GetSection("SendEmailSettings")
+                                    .Get<string[]>();
+
+                                EmailSender.SendEmail(emailSettings, _smtpCredentialsOptions, report);
+
+                                return $"{failing.Count()} healthchecks are failing";
+                            });
+
+                    string evaluationTimeString = Environment.GetEnvironmentVariable("EvaluationTimeInSeconds");
+                    if (!string.IsNullOrEmpty(evaluationTimeString)
+                        && int.TryParse(evaluationTimeString, out int evaluationTimeSeconds))
                     {
-                        setup.SetEvaluationTimeInSeconds(evaluationSeconds);
+                        setup.SetEvaluationTimeInSeconds(evaluationTimeSeconds);
                     }
-                    
+
                     setup.ConfigureApiEndpointHttpclient((sp, client) =>
                     {
                         client.DefaultRequestHeaders.Add("token", token);
                     });
 
-                    setup.AddHealthCheckEndpoint(
-                        nameof(_healthCheckConfig.UserHealthCheckEndpoint),
-                        _healthCheckConfig.UserHealthCheckEndpoint);
+                    _servicesInfo = _healthCheckConfig
+                        .GetType()
+                        .GetProperties()
+                        .Select(x => (ServiceName: x.Name, Uri: (string) x.GetValue(_healthCheckConfig)))
+                        .ToList();
 
-                    setup.AddHealthCheckEndpoint(
-                        nameof(_healthCheckConfig.ProjectHealthCheckEndpoint),
-                        _healthCheckConfig.ProjectHealthCheckEndpoint);
-
-                    setup.AddHealthCheckEndpoint(
-                        nameof(_healthCheckConfig.CompanyHealthCheckEndpoint),
-                        _healthCheckConfig.CompanyHealthCheckEndpoint);
-
-                    setup.AddHealthCheckEndpoint(
-                        nameof(_healthCheckConfig.CompanyHealthCheckEndpoint),
-                        _healthCheckConfig.CompanyHealthCheckEndpoint);
-
-                    setup.AddHealthCheckEndpoint(
-                        nameof(_healthCheckConfig.CompanyHealthCheckEndpoint),
-                        _healthCheckConfig.CompanyHealthCheckEndpoint);
-
-                    setup.AddHealthCheckEndpoint(
-                        nameof(_healthCheckConfig.CompanyHealthCheckEndpoint),
-                        _healthCheckConfig.CompanyHealthCheckEndpoint);
-
-                    setup.AddHealthCheckEndpoint(
-                        nameof(_healthCheckConfig.CompanyHealthCheckEndpoint),
-                        _healthCheckConfig.CompanyHealthCheckEndpoint);
-
-                    setup.AddHealthCheckEndpoint(
-                        nameof(_healthCheckConfig.CompanyHealthCheckEndpoint),
-                        _healthCheckConfig.CompanyHealthCheckEndpoint);
+                    foreach (var (serviceName, uri) in _servicesInfo)
+                    {
+                        setup.AddHealthCheckEndpoint(
+                            serviceName,
+                            uri);
+                    }
                 })
                 .AddInMemoryStorage();
         }
