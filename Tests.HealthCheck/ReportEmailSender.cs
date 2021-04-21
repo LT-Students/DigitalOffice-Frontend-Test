@@ -9,7 +9,7 @@ using Tests.HealthCheck.Models;
 
 namespace Tests.HealthCheck
 {
-    public static class EmailSender
+    public static class ReportEmailSender
     {
         private static readonly List<string> _reports = new();
         private static TimeSpan _interval;
@@ -43,6 +43,7 @@ namespace Tests.HealthCheck
                 Credentials = new NetworkCredential(_options.Email, _options.Password),
                 EnableSsl = true
             };
+
             MailAddress from = new(_options.Email);
 
             for (int i = 0; i < _emails.Length; i++)
@@ -52,11 +53,18 @@ namespace Tests.HealthCheck
                 var message = new MailMessage(from, to)
                 {
                     Subject = "HealthCheck",
-                    Body =
-                        $"{string.Join("; ", _reports)} is failed with error message"
+                    Body = 
+                        $"Failed with error messages: {Environment.NewLine}{string.Join("; ", _reports)}."
                 };
 
-                smtp.Send(message);
+                try
+                {
+                    smtp.Send(message);
+                }
+                catch (Exception )
+                {
+                    
+                }
             }
         }
     }

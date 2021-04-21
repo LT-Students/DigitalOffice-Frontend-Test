@@ -24,7 +24,7 @@ namespace Tests.HealthCheck
         private static List<(string ServiceName, string Uri)> _servicesInfo;
         private static string[] _emails;
 
-        private string GetTokenFromAuth() 
+        private string GetTokenFromAuthService() 
         {
             AuthLoginConfig authLoginConfig = Configuration
                 .GetSection(AuthLoginConfig.SectionName)
@@ -32,10 +32,9 @@ namespace Tests.HealthCheck
 
             HttpWebRequest httpRequest = (HttpWebRequest) WebRequest
                 .Create(authLoginConfig.UriString);
-
-            string login = "admin";
-            string password = "%4fgT1_3ioR";
-            string stringData = $"{{ \"LoginData\": \"{login}\",\"Password\": \"{password}\" }}";
+            
+            string stringData =
+                $"{{ \"LoginData\": \"{authLoginConfig.Login}\",\"Password\": \"{authLoginConfig.Password}\" }}";
 
             byte[] data = Encoding.Default.GetBytes(stringData);
 
@@ -77,12 +76,12 @@ namespace Tests.HealthCheck
                 interval = Configuration.GetSection("SendIntervalInMinutes").Get<int>();
             }
 
-            Task.Run(() => EmailSender.Start(interval, _emails, _smtpCredentialsOptions));
+            Task.Run(() => ReportEmailSender.Start(interval, _emails, _smtpCredentialsOptions));
         }
 
         public void ConfigureServices(IServiceCollection services)
         {
-            string token = GetTokenFromAuth();
+            string token = GetTokenFromAuthService();
 
             services.AddControllers();
 
@@ -98,7 +97,7 @@ namespace Tests.HealthCheck
                                 var failing = report.Entries
                                     .Where(e => e.Value.Status != UIHealthStatus.Healthy);
 
-                                EmailSender.AddReport(report);
+                                ReportEmailSender.AddReport(report);
 
                                 return $"{failing.Count()} healthchecks are failing";
                             });
