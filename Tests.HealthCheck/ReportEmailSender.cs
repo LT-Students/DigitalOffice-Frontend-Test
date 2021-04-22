@@ -13,7 +13,7 @@ namespace Tests.HealthCheck
     {
         private static readonly List<string> _reports = new();
         private static TimeSpan _interval;
-        private static string[] _emails;
+        private static List<string> _emails;
         private static SmtpCredentialsOptions _options;
         
         public static void AddReport(UIHealthReport newReport)
@@ -25,7 +25,7 @@ namespace Tests.HealthCheck
 
         public static void Start(int interval, string[] emails, SmtpCredentialsOptions options)
         {
-            _emails = emails;
+            _emails = emails.ToList();
             _options = options;
             _interval = TimeSpan.FromMinutes(interval);
             
@@ -46,7 +46,7 @@ namespace Tests.HealthCheck
 
             MailAddress from = new(_options.Email);
 
-            for (int i = 0; i < _emails.Length; i++)
+            for (int i = 0; i < _emails.Count; i++)
             {
                 MailAddress to = new(_emails[i]);
 
@@ -60,6 +60,8 @@ namespace Tests.HealthCheck
                 try
                 {
                     smtp.Send(message);
+                    _emails.RemoveAt(i);
+                    i--;
                 }
                 catch (Exception )
                 {
