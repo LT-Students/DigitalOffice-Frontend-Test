@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using HealthChecks.UI.Configuration;
 using HealthChecks.UI.Core;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -24,6 +25,16 @@ namespace Tests.HealthCheck
         private static List<(string ServiceName, string Uri)> _servicesInfo;
         private static string[] _emails;
 
+        private void ConfigureHcEndpoints(Settings setup)
+        {
+            foreach (var (serviceName, uri) in _servicesInfo)
+            {
+                setup.AddHealthCheckEndpoint(
+                    serviceName,
+                    uri);
+            }
+        }
+        
         private string GetTokenFromAuthService() 
         {
             AuthLoginConfig authLoginConfig = Configuration
@@ -120,12 +131,7 @@ namespace Tests.HealthCheck
                         .Select(x => (ServiceName: x.Name, Uri: (string) x.GetValue(_healthCheckConfig)))
                         .ToList();
 
-                    foreach (var (serviceName, uri) in _servicesInfo)
-                    {
-                        setup.AddHealthCheckEndpoint(
-                            serviceName,
-                            uri);
-                    }
+                    ConfigureHcEndpoints(setup);
                 })
                 .AddInMemoryStorage();
         }
