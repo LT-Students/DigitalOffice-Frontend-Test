@@ -5,7 +5,6 @@ namespace CloudAPITestProject.Services.AuthService
 {
     public class ApiInformation : ApiInformationCheck
     {
-
         protected override IRestResponse SendRequest()
         {
             var client = new RestClient("https://auth.ltdo.xyz/apiinformation");
