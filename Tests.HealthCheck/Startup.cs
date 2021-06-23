@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Tests.HealthCheck.Models;
 using Tests.HealthCheck.Models.Configurations;
 
 namespace Tests.HealthCheck
@@ -21,7 +20,6 @@ namespace Tests.HealthCheck
         public IConfiguration Configuration { get; }
 
         private readonly HealthCheckEndpointsConfig _healthCheckConfig;
-        private readonly SmtpCredentialsOptions _smtpCredentialsOptions;
         private static List<(string ServiceName, string Uri)> _servicesInfo;
         private static string[] _emails;
 
@@ -34,8 +32,8 @@ namespace Tests.HealthCheck
                     uri);
             }
         }
-        
-        private string GetTokenFromAuthService() 
+
+        private string GetTokenFromAuthService()
         {
             AuthLoginConfig authLoginConfig = Configuration
                 .GetSection(AuthLoginConfig.SectionName)
@@ -43,7 +41,7 @@ namespace Tests.HealthCheck
 
             HttpWebRequest httpRequest = (HttpWebRequest) WebRequest
                 .Create(authLoginConfig.UriString);
-            
+
             string stringData =
                 $"{{ \"LoginData\": \"{authLoginConfig.Login}\",\"Password\": \"{authLoginConfig.Password}\" }}";
 
@@ -74,10 +72,6 @@ namespace Tests.HealthCheck
                 .GetSection(HealthCheckEndpointsConfig.SectionName)
                 .Get<HealthCheckEndpointsConfig>();
 
-            _smtpCredentialsOptions = Configuration
-                .GetSection(SmtpCredentialsOptions.SectionName)
-                .Get<SmtpCredentialsOptions>();
-            
             _emails = Configuration
                 .GetSection("SendEmailList")
                 .Get<string[]>();
@@ -87,7 +81,7 @@ namespace Tests.HealthCheck
                 interval = Configuration.GetSection("SendIntervalInMinutes").Get<int>();
             }
 
-            Task.Run(() => ReportEmailSender.Start(interval, _emails, _smtpCredentialsOptions));
+            Task.Run(() => ReportEmailSender.Start(interval, _emails));
         }
 
         public void ConfigureServices(IServiceCollection services)

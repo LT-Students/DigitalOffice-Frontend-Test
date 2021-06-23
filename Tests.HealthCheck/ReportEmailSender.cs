@@ -5,7 +5,8 @@ using System.Net;
 using System.Net.Mail;
 using System.Threading.Tasks;
 using HealthChecks.UI.Core;
-using Tests.HealthCheck.Models;
+using LT.DigitalOffice.Kernel.Constants;
+using LT.DigitalOffice.Kernel.Helpers;
 
 namespace Tests.HealthCheck
 {
@@ -14,37 +15,39 @@ namespace Tests.HealthCheck
         private static readonly List<string> _reports = new();
         private static TimeSpan _interval;
         private static List<string> _emails;
-        private static SmtpCredentialsOptions _options;
-        
+
         public static void AddReport(UIHealthReport newReport)
         {
             _reports.Add(string.Join(
-                ", ", 
+                ", ",
                 newReport.Entries.Values.Select(x => x.Description)));
         }
 
-        public static void Start(int interval, string[] emails, SmtpCredentialsOptions options)
+        public static void Start(int interval, string[] emails)
         {
             _emails = emails.ToList();
-            _options = options;
             _interval = TimeSpan.FromMinutes(interval);
-            
+
             while (true)
             {
                 Task.Delay(_interval).Wait();
                 SendEmails();
             }
         }
-        
+
         public static void SendEmails()
-        { 
-            var smtp = new SmtpClient(_options.Host, _options.Port)
+        {
+            var smtp = new SmtpClient(
+                GetEnvironmentVariableHelper.Get(ConstStrings.Host),
+                int.Parse(GetEnvironmentVariableHelper.Get(ConstStrings.Port)))
             {
-                Credentials = new NetworkCredential(_options.Email, _options.Password),
+                Credentials = new NetworkCredential(
+                    GetEnvironmentVariableHelper.Get(ConstStrings.Email),
+                    GetEnvironmentVariableHelper.Get(ConstStrings.Password)),
                 EnableSsl = true
             };
 
-            MailAddress from = new(_options.Email);
+            MailAddress from = new(GetEnvironmentVariableHelper.Get(ConstStrings.Email));
 
             for (int i = 0; i < _emails.Count; i++)
             {
@@ -53,7 +56,7 @@ namespace Tests.HealthCheck
                 var message = new MailMessage(from, to)
                 {
                     Subject = "HealthCheck",
-                    Body = 
+                    Body =
                         $"Failed with error messages: {Environment.NewLine}{string.Join("; ", _reports)}."
                 };
 
@@ -65,7 +68,7 @@ namespace Tests.HealthCheck
                 }
                 catch (Exception )
                 {
-                    
+
                 }
             }
         }
