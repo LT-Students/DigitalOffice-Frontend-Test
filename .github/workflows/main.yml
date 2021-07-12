@@ -4,8 +4,7 @@ name: Build & Test Tests project
 # events but only for the develop branch
 on:
   push:
-    branches:
-      - develop
+    branches: [ '*' ]
   pull_request:
     branches: [ develop, master ]
 
