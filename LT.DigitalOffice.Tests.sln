@@ -18,7 +18,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests.HealthCheck", "Tests.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GUITestProject", "GUITestProject\GUITestProject.csproj", "{33E3D1CF-7CAB-435E-8B71-C51E7DAFDAE6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudAPITestProject", "CloudAPITestProject\CloudAPITestProject.csproj", "{4E20142E-C21C-4E9C-9569-988256E38921}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CloudAPITestProject", "CloudAPITestProject\CloudAPITestProject.csproj", "{4E20142E-C21C-4E9C-9569-988256E38921}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LoadTesting", "LoadTest\LoadTesting.csproj", "{FFAD6BD9-3AF3-468D-BAE2-8D13DA347367}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -36,6 +38,10 @@ Global
 		{4E20142E-C21C-4E9C-9569-988256E38921}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4E20142E-C21C-4E9C-9569-988256E38921}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4E20142E-C21C-4E9C-9569-988256E38921}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FFAD6BD9-3AF3-468D-BAE2-8D13DA347367}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FFAD6BD9-3AF3-468D-BAE2-8D13DA347367}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FFAD6BD9-3AF3-468D-BAE2-8D13DA347367}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FFAD6BD9-3AF3-468D-BAE2-8D13DA347367}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -44,6 +50,7 @@ Global
 		{C007A86D-C0A2-4DDA-A9BB-20651147ECA5} = {3D9A71C3-2A3A-48C3-BED9-738A4CC4B204}
 		{33E3D1CF-7CAB-435E-8B71-C51E7DAFDAE6} = {3D9A71C3-2A3A-48C3-BED9-738A4CC4B204}
 		{4E20142E-C21C-4E9C-9569-988256E38921} = {3D9A71C3-2A3A-48C3-BED9-738A4CC4B204}
+		{FFAD6BD9-3AF3-468D-BAE2-8D13DA347367} = {3D9A71C3-2A3A-48C3-BED9-738A4CC4B204}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A2257EDB-7202-462B-9B51-D2AE6AB3B804}
