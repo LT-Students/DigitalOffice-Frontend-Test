@@ -16,11 +16,11 @@ namespace DigitalOffice.LoadTesting
         {
             var settings = new ScenarioStartSettings()
             {
-                Path = "C://users/Egor/test",
+                Path = "path_for_saving_reports",
                 During = TimeSpan.FromSeconds(6),
                 WarmUpTime = TimeSpan.FromSeconds(5),
                 Rate = 20,
-                Token = (new AuthController()).Auth("Egorka", "egor123").Result.AccessToken
+                Token = (new AuthController()).Auth("Login", "password").Result.AccessToken
             };
 
             EducationScenarios education = new(settings);
