@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
         <TargetFramework>net5.0</TargetFramework>
@@ -9,7 +9,8 @@
       <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="5.0.1" />
       <PackageReference Include="AspNetCore.HealthChecks.UI.Core" Version="5.0.1" />
       <PackageReference Include="AspNetCore.HealthChecks.UI.InMemory.Storage" Version="5.0.1" />
-      <PackageReference Include="LT.DigitalOffice.Kernel" Version="1.1.28" />
+      <PackageReference Include="LT.DigitalOffice.Kernel" Version="1.1.45" />
+      <PackageReference Include="LT.DigitalOffice.Models" Version="1.0.39" />
     </ItemGroup>
 
 </Project>
