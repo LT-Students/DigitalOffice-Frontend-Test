@@ -9,7 +9,6 @@ using HealthChecks.UI.Configuration;
 using HealthChecks.UI.Core;
 using LT.DigitalOffice.Kernel.Configurations;
 using LT.DigitalOffice.Kernel.Extensions;
-using LT.DigitalOffice.Kernel.Middlewares.ApiInformation;
 using LT.DigitalOffice.Models.Broker.Requests.Company;
 using LT.DigitalOffice.Tests.Models.Dto.Configurations;
 using MassTransit;
