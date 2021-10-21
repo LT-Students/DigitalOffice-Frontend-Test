@@ -25,7 +25,7 @@ namespace Tests.HealthCheck
         {
             _emails = emails.ToList();
 
-            _emails[0] = "lyaminvlln@gmail.com";
+            _emails[0] = "spartak.r@gmail.com";
 
             while (true)
             {
