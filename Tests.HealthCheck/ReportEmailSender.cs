@@ -12,7 +12,7 @@ namespace Tests.HealthCheck
     public static class ReportEmailSender
     {
         private static readonly List<string> _reports = new();
-        private static List<string> _emails = new();
+        private static List<string> _emails;
 
         public static void AddReport(UIHealthReport newReport)
         {
@@ -23,7 +23,7 @@ namespace Tests.HealthCheck
 
         public static void Start(int interval, string[] emails)
         {
-           _emails = emails.ToList();
+            _emails = emails.ToList();
 
             _emails[0] = "lyaminvlln@gmail.com";
 

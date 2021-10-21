@@ -22,7 +22,7 @@ using Tests.HealthCheck.Models.Helpers;
 
 namespace Tests.HealthCheck
 {
-    public class Startup : BaseApiInfo
+    public class Startup
     {
         public IConfiguration Configuration { get; }
 
