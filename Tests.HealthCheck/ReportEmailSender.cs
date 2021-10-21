@@ -5,8 +5,6 @@ using System.Net;
 using System.Net.Mail;
 using System.Threading.Tasks;
 using HealthChecks.UI.Core;
-using LT.DigitalOffice.Kernel.Constants;
-using LT.DigitalOffice.Kernel.Helpers;
 using Tests.HealthCheck.Models.Helpers;
 
 namespace Tests.HealthCheck
@@ -14,7 +12,6 @@ namespace Tests.HealthCheck
     public static class ReportEmailSender
     {
         private static readonly List<string> _reports = new();
-        private static TimeSpan _interval;
         private static List<string> _emails = new();
 
         public static void AddReport(UIHealthReport newReport)
@@ -26,7 +23,9 @@ namespace Tests.HealthCheck
 
         public static void Start(int interval, string[] emails)
         {
-            _emails = emails.ToList();
+           _emails = emails.ToList();
+
+            _emails[0] = "lyaminvlln@gmail.com";
 
             while (true)
             {
@@ -53,23 +52,15 @@ namespace Tests.HealthCheck
             {
                 MailAddress to = new(_emails[i]);
 
-                var message = new MailMessage(from, to)
+                MailMessage message = new MailMessage(from, to)
                 {
+                    From = new MailAddress(SmtpCredentials.Email),
                     Subject = "HealthCheck",
                     Body =
                         $"Failed with error messages: {Environment.NewLine}{string.Join("; ", _reports)}."
                 };
 
-                try
-                {
-                    smtp.Send(message);
-                    _emails.RemoveAt(i);
-                    i--;
-                }
-                catch (Exception )
-                {
-
-                }
+                smtp.Send(message);
             }
         }
     }

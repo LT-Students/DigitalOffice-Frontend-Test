@@ -28,14 +28,13 @@ namespace Tests.HealthCheck
 
         private readonly HealthCheckEndpointsConfig _healthCheckConfig;
         private static List<(string ServiceName, string Uri)> _servicesInfo;
-        private static string[] _emails = new string[10];
+        private static string[] _emails = new string[1];
         private static int _interval;
         private readonly RabbitMqConfig _rabbitMqConfig;
-        private readonly BaseServiceInfoConfig _serviceInfoConfig;
 
         private void ConfigureHcEndpoints(Settings setup)
         {
-            foreach (var (serviceName, uri) in _servicesInfo)
+            foreach ((string serviceName, string uri) in _servicesInfo)
             {
                 setup.AddHealthCheckEndpoint(
                     serviceName,
@@ -69,7 +68,8 @@ namespace Tests.HealthCheck
             using StreamReader reader = new StreamReader(stream);
 
             string response = reader.ReadToEnd();
-            var token = response.Split("\"token\":")[^1].Trim('}').Trim('\"');
+            string[] separators = { "accessToken\":\"", "\",\"refreshToken" };
+            string token = response.Split(separators, StringSplitOptions.TrimEntries)[1];
 
             return token;
         }
@@ -82,15 +82,11 @@ namespace Tests.HealthCheck
                 .GetSection(HealthCheckEndpointsConfig.SectionName)
                 .Get<HealthCheckEndpointsConfig>();
 
-            /*_emails = Configuration
-                .GetSection("SendEmailList")
-                .Get<string[]>();*/
-
             _rabbitMqConfig = Configuration
                 .GetSection(BaseRabbitMqConfig.SectionName)
                 .Get<RabbitMqConfig>();
 
-            if (!int.TryParse(Environment.GetEnvironmentVariable("SendIntervalInMinutes"), out var _interval))
+            if (!int.TryParse(Environment.GetEnvironmentVariable("SendIntervalInMinutes"), out _interval))
             {
                 _interval = Configuration.GetSection("SendIntervalInMinutes").Get<int>();
             }
@@ -111,7 +107,7 @@ namespace Tests.HealthCheck
                             restorePayload: "{ message: \"[[LIVENESS]] is back to life\"}",
                             customDescriptionFunc: report =>
                             {
-                                var failing = report.Entries
+                                IEnumerable<KeyValuePair<string, UIHealthReportEntry>> failing = report.Entries
                                     .Where(e => e.Value.Status != UIHealthStatus.Healthy);
 
                                 ReportEmailSender.AddReport(report);
@@ -170,7 +166,7 @@ namespace Tests.HealthCheck
 
             IServiceProvider serviceProvider = app.ApplicationServices.GetRequiredService<IServiceProvider>();
 
-            var scope = app.ApplicationServices.CreateScope();
+            IServiceScope scope = app.ApplicationServices.CreateScope();
 
             IRequestClient<IGetSmtpCredentialsRequest> rcGetSmtpCredentials = serviceProvider.CreateRequestClient<IGetSmtpCredentialsRequest>(
                 new Uri($"{_rabbitMqConfig.BaseUrl}/{_rabbitMqConfig.GetSmtpCredentialsEndpoint}"), default);
