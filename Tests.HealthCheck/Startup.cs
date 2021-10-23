@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Tests.HealthCheck.Models.Configurations;
 using Tests.HealthCheck.Models.Helpers;
 
@@ -30,6 +31,8 @@ namespace Tests.HealthCheck
         private static string[] _emails = new string[1];
         private static int _interval;
         private readonly RabbitMqConfig _rabbitMqConfig;
+        private readonly BaseServiceInfoConfig _serviceInfoConfig;
+        private readonly ILogger<SmtpGetter> _logger;
 
         private void ConfigureHcEndpoints(Settings setup)
         {
@@ -84,6 +87,17 @@ namespace Tests.HealthCheck
             _rabbitMqConfig = Configuration
                 .GetSection(BaseRabbitMqConfig.SectionName)
                 .Get<RabbitMqConfig>();
+
+            _serviceInfoConfig = Configuration
+                .GetSection(BaseServiceInfoConfig.SectionName)
+                .Get<BaseServiceInfoConfig>();
+
+            ILoggerFactory loggerFactory = LoggerFactory.Create(builder =>
+            {
+                builder.AddConsole();
+            });
+
+            _logger = loggerFactory.CreateLogger<SmtpGetter>();
 
             if (!int.TryParse(Environment.GetEnvironmentVariable("SendIntervalInMinutes"), out _interval))
             {
@@ -140,10 +154,10 @@ namespace Tests.HealthCheck
             {
                 x.UsingRabbitMq((context, cfg) =>
                 {
-                    cfg.Host("localhost", "/", host =>
+                    cfg.Host(_rabbitMqConfig.Host, "/", host =>
                     {
-                        host.Username("TestService_971E75B1-E475-4A2D-97A4-9A7FDE1FK8R9");
-                        host.Password("971E75B1-E475-4A2D-97A4-9A7FDE1FK8R9");
+                        host.Username($"{_serviceInfoConfig.Name}_{_serviceInfoConfig.Id}");
+                        host.Password(_serviceInfoConfig.Id);
                     });
                 });
 
@@ -170,7 +184,7 @@ namespace Tests.HealthCheck
             IRequestClient<IGetSmtpCredentialsRequest> rcGetSmtpCredentials = serviceProvider.CreateRequestClient<IGetSmtpCredentialsRequest>(
                 new Uri($"{_rabbitMqConfig.BaseUrl}/{_rabbitMqConfig.GetSmtpCredentialsEndpoint}"), default);
 
-            SmtpGetter smtpGetter = new SmtpGetter(rcGetSmtpCredentials);
+            SmtpGetter smtpGetter = new SmtpGetter(rcGetSmtpCredentials, _logger);
 
             if (smtpGetter.GetSmtp().Result)
             {

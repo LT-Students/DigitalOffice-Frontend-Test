@@ -2,6 +2,7 @@
 using LT.DigitalOffice.Models.Broker.Requests.Company;
 using LT.DigitalOffice.Models.Broker.Responses.Company;
 using MassTransit;
+using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 
 namespace Tests.HealthCheck.Models.Helpers
@@ -9,29 +10,38 @@ namespace Tests.HealthCheck.Models.Helpers
     public class SmtpGetter
     {
         private readonly IRequestClient<IGetSmtpCredentialsRequest> _rcGetSmtp;
+        private readonly ILogger<SmtpGetter> _logger;
 
         public SmtpGetter(
-            IRequestClient<IGetSmtpCredentialsRequest> rcGetSmtp
-        )
+            IRequestClient<IGetSmtpCredentialsRequest> rcGetSmtp,
+            ILogger<SmtpGetter> logger)
         {
             _rcGetSmtp = rcGetSmtp;
+            _logger = logger;
         }
 
         public async Task<bool> GetSmtp()
         {
             try
             {
-                IGetSmtpCredentialsResponse response = (await _rcGetSmtp.GetResponse<IOperationResult<IGetSmtpCredentialsResponse>>(
-                  IGetSmtpCredentialsRequest.CreateObj())).Message.Body;
+                IOperationResult<IGetSmtpCredentialsResponse> response = (await _rcGetSmtp.GetResponse<IOperationResult<IGetSmtpCredentialsResponse>>(
+                  IGetSmtpCredentialsRequest.CreateObj())).Message;
 
-                SmtpCredentials.Email = response.Email;
-                SmtpCredentials.EnableSsl = response.EnableSsl;
-                SmtpCredentials.Host = response.Host;
-                SmtpCredentials.Password = response.Password;
-                SmtpCredentials.Port = response.Port;
+                if (!response.IsSuccess)
+                {
+                    _logger.LogWarning("Can not get SmtpCredentials from Company.");
+                    return false;
+                }
+
+                SmtpCredentials.Email = response.Body.Email;
+                SmtpCredentials.EnableSsl = response.Body.EnableSsl;
+                SmtpCredentials.Host = response.Body.Host;
+                SmtpCredentials.Password = response.Body.Password;
+                SmtpCredentials.Port = response.Body.Port;
             }
             catch
             {
+                _logger.LogWarning("Can not get SmtpCredentials from Company.");
                 return false;
             }
 
