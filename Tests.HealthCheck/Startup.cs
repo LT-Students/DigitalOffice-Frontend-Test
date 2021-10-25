@@ -28,7 +28,7 @@ namespace Tests.HealthCheck
 
         private readonly HealthCheckEndpointsConfig _healthCheckConfig;
         private static List<(string ServiceName, string Uri)> _servicesInfo;
-        private static string[] _emails = new string[1];
+        private static string[] _emails;
         private static int _interval;
         private readonly RabbitMqConfig _rabbitMqConfig;
         private readonly BaseServiceInfoConfig _serviceInfoConfig;
@@ -91,6 +91,10 @@ namespace Tests.HealthCheck
             _serviceInfoConfig = Configuration
                 .GetSection(BaseServiceInfoConfig.SectionName)
                 .Get<BaseServiceInfoConfig>();
+
+            _emails = Configuration
+                .GetSection("SendEmailList")
+                .Get<string[]>();
 
             ILoggerFactory loggerFactory = LoggerFactory.Create(builder =>
             {
