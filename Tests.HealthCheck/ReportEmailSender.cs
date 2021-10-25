@@ -25,8 +25,6 @@ namespace Tests.HealthCheck
         {
             _emails = emails.ToList();
 
-            _emails[0] = "spartak.ryabtsev@lanit-tercom.com";
-
             while (true)
             {
                 Task.Delay(interval).Wait();
