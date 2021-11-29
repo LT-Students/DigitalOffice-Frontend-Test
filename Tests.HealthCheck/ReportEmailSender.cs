@@ -27,7 +27,7 @@ namespace Tests.HealthCheck
 
             while (true)
             {
-                Task.Delay(interval).Wait();
+                Task.Delay(TimeSpan.FromMinutes(interval)).Wait();
                 SendEmails();
             }
         }
