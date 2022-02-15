@@ -7,13 +7,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="AspNetCore.HealthChecks.UI" Version="6.0.1-rc2.4" />
-      <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="6.0.1-rc2.4" />
-      <PackageReference Include="AspNetCore.HealthChecks.UI.Core" Version="6.0.1-rc2.4" />
-      <PackageReference Include="AspNetCore.HealthChecks.UI.InMemory.Storage" Version="6.0.1-rc2.4" />
+      <PackageReference Include="AspNetCore.HealthChecks.UI" Version="6.0.2" />
+      <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="6.0.2" />
+      <PackageReference Include="AspNetCore.HealthChecks.UI.Core" Version="6.0.2" />
+      <PackageReference Include="AspNetCore.HealthChecks.UI.InMemory.Storage" Version="6.0.2" />
       <PackageReference Include="LT.DigitalOffice.Kernel" Version="1.1.53" />
       <PackageReference Include="LT.DigitalOffice.Kernel.BrokerSupport" Version="1.0.1" />
-      <PackageReference Include="LT.DigitalOffice.Models" Version="1.0.39" />
+      <PackageReference Include="LT.DigitalOffice.Models" Version="1.0.64" />
     </ItemGroup>
 
 </Project>
