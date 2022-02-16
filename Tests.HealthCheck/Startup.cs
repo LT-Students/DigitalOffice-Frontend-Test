@@ -2,8 +2,10 @@ using HealthChecks.UI.Configuration;
 using HealthChecks.UI.Core;
 using LT.DigitalOffice.Kernel.BrokerSupport.Configurations;
 using LT.DigitalOffice.Kernel.BrokerSupport.Extensions;
+using LT.DigitalOffice.Kernel.BrokerSupport.Helpers;
 using LT.DigitalOffice.Kernel.Configurations;
 using LT.DigitalOffice.Models.Broker.Requests.Company;
+using LT.DigitalOffice.Tests.HealthCheck.Models.Helpers;
 using LT.DigitalOffice.Tests.Models.Dto.Configurations;
 using MassTransit;
 using Microsoft.AspNetCore.Builder;
@@ -13,10 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Net;
-using System.Text;
 using System.Threading.Tasks;
 using Tests.HealthCheck.Models.Configurations;
 using Tests.HealthCheck.Models.Helpers;
@@ -28,12 +27,14 @@ namespace Tests.HealthCheck
         public IConfiguration Configuration { get; }
 
         private readonly HealthCheckEndpointsConfig _healthCheckConfig;
-        private static List<(string ServiceName, string Uri)> _servicesInfo;
-        private static string[] _emails;
-        private static int _interval;
+        private readonly AuthLoginConfig _authLoginConfig;
         private readonly RabbitMqConfig _rabbitMqConfig;
         private readonly BaseServiceInfoConfig _serviceInfoConfig;
         private readonly ILogger<SmtpGetter> _logger;
+
+        private static List<(string ServiceName, string Uri)> _servicesInfo;
+        private static string[] _emails;
+        private static int _interval;
 
         private void ConfigureHcEndpoints(Settings setup)
         {
@@ -45,41 +46,41 @@ namespace Tests.HealthCheck
             }
         }
 
-        private string GetTokenFromAuthService()
+        private (string username, string password) GetRabbitMqCredentials(
+            RabbitMqConfig rabbitMqConfig,
+            BaseServiceInfoConfig serviceInfoConfig)
         {
-            AuthLoginConfig authLoginConfig = Configuration
-                .GetSection(AuthLoginConfig.SectionName)
-                .Get<AuthLoginConfig>();
+            string GetString(string envVar, string fromAppsettings, string generated, string fieldName)
+            {
+                string str = Environment.GetEnvironmentVariable(envVar);
 
-            HttpWebRequest httpRequest = (HttpWebRequest) WebRequest
-                .Create(authLoginConfig.UriString);
+                if (string.IsNullOrEmpty(str))
+                {
+                    str = fromAppsettings ?? generated;
+                }
 
-            string stringData =
-                $"{{ \"LoginData\": \"{authLoginConfig.Login}\",\"Password\": \"{authLoginConfig.Password}\" }}";
+                return str;
+            }
 
-            byte[] data = Encoding.Default.GetBytes(stringData);
-
-            httpRequest.Method = "POST";
-            httpRequest.ContentType = "application/json; charset=utf-8";
-            httpRequest.ContentLength = data.Length;
-
-            using Stream newStream = httpRequest.GetRequestStream();
-            newStream.Write(data, 0, data.Length);
-
-            using HttpWebResponse httpResponse = (HttpWebResponse) httpRequest.GetResponse();
-            using Stream stream = httpResponse.GetResponseStream();
-            using StreamReader reader = new StreamReader(stream);
-
-            string response = reader.ReadToEnd();
-            string[] separators = { "accessToken\":\"", "\",\"refreshToken" };
-            string token = response.Split(separators, StringSplitOptions.TrimEntries)[1];
-
-            return token;
+            return (GetString("RabbitMqUsername", rabbitMqConfig.Username, $"{serviceInfoConfig.Name}_{serviceInfoConfig.Id}", "Username"),
+              GetString("RabbitMqPassword", rabbitMqConfig.Password, serviceInfoConfig.Id, "Password"));
         }
 
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+
+            _authLoginConfig = new AuthLoginConfig()
+            {
+                UriString = Environment.GetEnvironmentVariable("UriString") ??
+                    Configuration.GetSection(AuthLoginConfig.SectionName).GetValue<string>("UriString"),
+
+                Login = Environment.GetEnvironmentVariable("Login") ??
+                    Configuration.GetSection(AuthLoginConfig.SectionName).GetValue<string>("Login"),
+
+                Password = Environment.GetEnvironmentVariable("Password") ??
+                    Configuration.GetSection(AuthLoginConfig.SectionName).GetValue<string>("Password")
+            };
 
             _healthCheckConfig = Configuration
                 .GetSection(HealthCheckEndpointsConfig.SectionName)
@@ -112,8 +113,6 @@ namespace Tests.HealthCheck
 
         public void ConfigureServices(IServiceCollection services)
         {
-            string token = GetTokenFromAuthService();
-
             services.AddControllers();
 
             services
@@ -140,10 +139,7 @@ namespace Tests.HealthCheck
                         setup.SetEvaluationTimeInSeconds(evaluationTimeSeconds);
                     }
 
-                    setup.ConfigureApiEndpointHttpclient((sp, client) =>
-                    {
-                        client.DefaultRequestHeaders.Add("token", token);
-                    });
+                    setup.UseApiEndpointHttpMessageHandler(handler => new CustomHttpClientHandler(_authLoginConfig));
 
                     _servicesInfo = _healthCheckConfig
                         .GetType()
@@ -155,14 +151,16 @@ namespace Tests.HealthCheck
                 })
                 .AddInMemoryStorage();
 
+            (string username, string password) = GetRabbitMqCredentials(_rabbitMqConfig, _serviceInfoConfig);
+
             services.AddMassTransit(x =>
             {
                 x.UsingRabbitMq((context, cfg) =>
                 {
                     cfg.Host(_rabbitMqConfig.Host, "/", host =>
                     {
-                        host.Username($"{_serviceInfoConfig.Name}_{_serviceInfoConfig.Id}");
-                        host.Password(_serviceInfoConfig.Id);
+                        host.Username(username);
+                        host.Password(password);
                     });
                 });
 
