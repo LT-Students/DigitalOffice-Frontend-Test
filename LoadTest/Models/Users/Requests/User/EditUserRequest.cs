@@ -3,23 +3,19 @@ using System;
 
 namespace DigitalOffice.LoadTesting.Models.Users.Requests.User
 {
-    public class EditUserRequest
-    {
-        public Guid DepartmentId { get; set; }
-        public Guid PositionId { get; set; }
-        public Guid RoleId { get; set; }
-        public Guid OfficeId { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string MiddleName { get; set; }
-        public string About { get; set; }
-        public UserGender Gender { get; set; }
-        public DateTime? DateOfBirth { get; set; }
-        public string City { get; set; }
-        public AddImageRequest AvatarImage { get; set; }
-        public UserStatus Status { get; set; }
-        public DateTime? StartWorkingAt { get; set; }
-        public double Rate { get; set; }
-        public bool IsActive { get; set; }
-    }
+  public class EditUserRequest
+  {
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+    public string MiddleName { get; set; }
+    public UserStatus Status { get; set; }
+    public bool IsAdmin { get; set; }
+    public DateTime? DateOfBirth { get; set; }
+    public Guid? GenderId { get; set; }
+    public string About { get; set; }
+    public DateTime? BusinessHoursFromUtc { get; set; }
+    public DateTime? BusinessHoursToUtc { get; set; }
+    public double? Latitude { get; set; }
+    public double? Longitude { get; set; }
+  }
 }

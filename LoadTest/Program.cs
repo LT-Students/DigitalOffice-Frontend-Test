@@ -1,81 +1,66 @@
 ﻿using DigitalOffice.LoadTesting.Models;
 using DigitalOffice.LoadTesting.Scenarios.Company;
-using DigitalOffice.LoadTesting.Scenarios.Message;
 using DigitalOffice.LoadTesting.Scenarios.Project;
 using DigitalOffice.LoadTesting.Scenarios.Rights;
 using DigitalOffice.LoadTesting.Scenarios.Time;
 using DigitalOffice.LoadTesting.Services.Auth;
 using DigitalOffice.LoadTesting.Services.User;
+using LT.DigitalOffice.LoadTesting.Helpers;
+using LT.DigitalOffice.LoadTesting.LoadTests.Company;
 using System;
+using System.Threading.Tasks;
 
 namespace DigitalOffice.LoadTesting
 {
-    class Program
+  class Program
+  {
+    static async Task Main(string[] args)
     {
-        static void Main(string[] args)
-        {
-            var settings = new ScenarioStartSettings()
-            {
-                Path = "path_for_saving_reports",
-                During = TimeSpan.FromSeconds(6),
-                WarmUpTime = TimeSpan.FromSeconds(5),
-                Rate = 20,
-                Token = (new AuthController()).Auth("Login", "password").Result.AccessToken
-            };
+      var settings = new ScenarioStartSettings()
+      {
+        Path = "C:\\Temp\\NB",
+        During = TimeSpan.FromSeconds(240),
+        WarmUpTime = TimeSpan.FromSeconds(5),
+        ResponseTimeout = TimeSpan.FromSeconds(60),
+        Rate = 50,
+        Token = (new AuthController()).Auth("Nikita26", "Admin2022!").Result.AccessToken
+      };
 
-            EducationScenarios education = new(settings);
-            CertificateScenarios certificate = new(settings);
-            CommunicationScenarios communication = new(settings);
-            UsersScenarios users = new(settings);
+      EntitiesCreator initial = new(settings);
 
-            PositionScenarios position = new(settings);
-            DepartmentScenarios department = new(settings);
-            CompanyScenarios company = new(settings);
-            OfficeScenarios office = new(settings);
+      UsersScenarios users = new(settings);
 
-            WorkspaceScenarios workspace = new(settings);
-            ChannelScenarios channel = new(settings);
+      ImportScenarios importScenarios = new(settings);
+      LeaveTimeScenarios leaveTimeScenarios = new(settings);
+      StatScenarios statScenarios = new(settings);
+      WorkTimeMonthLimitScenarios workTimeMonthLimitScenarios = new(settings);
+      WorkTimeScenarios workTimeScenarios = new(settings);
 
-            ProjectScenarios project = new(settings);
-            TaskPropertyScenarios taskProperty = new(settings);
-            TaskScenarios task = new(settings);
+      RightsScenarios rightsScenarios = new(settings);
+      RolesScenarios rolesScenarios = new(settings);
 
-            RightsScenarios rights = new(settings);
-            RolesScenarios roles = new(settings);
+      ProjectScenarios projectScenarios = new(settings);
 
-            ImportScenarios import = new(settings);
-            LeaveTimeScenarios leaveTime = new(settings);
-            StatScenarios stat = new(settings);
-            WorkTimeDayJobScenarios workTimeDayJob = new(settings);
-            WorkTimeMonthLimitScenarios workTimeMonthLimit = new(settings);
-            WorkTimeScenarios workTime = new(settings);
+      CompanyScenarios companyScenarios = new(settings);
+      ContractSubjectScenarios contractSubjectScenarios = new(settings);
 
-            education.Run();
-            certificate.Run();
-            communication.Run();
-            users.Run();
+      //await initial.Run()
 
-            position.Run();
-            department.Run();
-            company.Run();
-            office.Run();
+      users.Run();
 
-            workspace.Run();
-            channel.Run();
-
-            project.Run();
-            task.Run();
-            taskProperty.Run();
-
-            rights.Run();
-            roles.Run();
-
-            import.Run();
-            leaveTime.Run();
-            stat.Run();
-            workTime.Run();
-            workTimeDayJob.Run();
-            workTimeMonthLimit.Run();
-        }
+      //importScenarios.Run();
+      leaveTimeScenarios.Run();
+      workTimeMonthLimitScenarios.Run();
+      statScenarios.Run();
+      workTimeScenarios.Run();
+      
+      rightsScenarios.Run();
+      rolesScenarios.Run();
+      
+      projectScenarios.Run();
+      
+      companyScenarios.Run();
+      contractSubjectScenarios.Run();
     }
+  }
 }

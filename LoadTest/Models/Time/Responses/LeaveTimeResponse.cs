@@ -2,9 +2,9 @@
 
 namespace DigitalOffice.LoadTesting.Models.Time.Responses
 {
-    public record LeaveTimeResponse
-    {
-        public LeaveTimeInfo LeaveTime { get; set; }
-        public UserInfo User { get; set; }
-    }
+  public record LeaveTimeResponse
+  {
+    public LeaveTimeInfo LeaveTime { get; set; }
+    public UserInfo User { get; set; }
+  }
 }

@@ -1,11 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using LT.DigitalOffice.LoadTesting.Models.Rights.Requests;
+using System.Collections.Generic;
 
 namespace DigitalOffice.LoadTesting.Models.Rights.Requests
 {
-    public record CreateRoleRequest
-    {
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public List<int> Rights { get; set; }
-    }
+  public record CreateRoleRequest
+  {
+    public List<CreateRoleLocalizationRequest> Localizations { get; set; }
+    public List<int> Rights { get; set; }
+  }
 }
