@@ -15,14 +15,15 @@ namespace DigitalOffice.LoadTesting.Scenarios.Rights
     private Scenario GetRightsList(HttpStatusCode expected = HttpStatusCode.OK)
     {
       var correct = Step.Create("get_rights_list", async context =>
-        CreateResponse(await _rightsController.GetRightsList(), expected));
+        CreateResponse(await _rightsController.GetRightsList(), expected),
+        timeout: _responseTimeout);
 
       return ScenarioBuilder
         .CreateScenario("get_rights_list", correct)
         .WithWarmUpDuration(_warmUpTime)
         .WithLoadSimulations(new[]
         {
-          Simulation.InjectPerSec(_rate, _during)
+          Simulation.KeepConstant(_rate, _during)
         });
     }
 
@@ -37,7 +38,7 @@ namespace DigitalOffice.LoadTesting.Scenarios.Rights
       NBomberRunner
         .RegisterScenarios(GetRightsList(HttpStatusCode.OK))
         .WithReportFolder($"{_path}/get_rights_list")
-        .WithReportFileName("get")
+        .WithReportFileName("get_rights")
         .WithReportFormats(ReportFormat.Txt, ReportFormat.Html)
         .Run();
     }

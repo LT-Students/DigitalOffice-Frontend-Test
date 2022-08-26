@@ -20,14 +20,14 @@ namespace LT.DigitalOffice.LoadTesting.LoadTests.Company
         {
           SkipCount = Random.Shared.Next(50),
           TakeCount = Random.Shared.Next(int.MaxValue)
-        }), expected));
+        }), expected), timeout: _responseTimeout);
 
       return ScenarioBuilder
         .CreateScenario("find_contractSubject", correct)
         .WithWarmUpDuration(_warmUpTime)
         .WithLoadSimulations(new[]
         {
-          Simulation.InjectPerSec(_rate, _during)
+          Simulation.KeepConstant(_rate, _during)
         });
     }
 
@@ -42,7 +42,7 @@ namespace LT.DigitalOffice.LoadTesting.LoadTests.Company
       NBomberRunner
         .RegisterScenarios(Find())
         .WithReportFolder($"{_path}/find_contractSubject")
-        .WithReportFileName("find")
+        .WithReportFileName("find_contractSubject")
         .WithReportFormats(ReportFormat.Txt, ReportFormat.Html)
         .Run();
     }

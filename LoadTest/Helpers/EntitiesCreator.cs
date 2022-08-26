@@ -86,7 +86,7 @@ namespace LT.DigitalOffice.LoadTesting.Helpers
         .WithoutWarmUp()
         .WithLoadSimulations(new[]
         {
-          Simulation.InjectPerSec(_initRate, _initDuration)
+          Simulation.KeepConstant(_initRate, _initDuration)
         });
     }
 
@@ -116,7 +116,7 @@ namespace LT.DigitalOffice.LoadTesting.Helpers
         .WithWarmUpDuration(_warmUpTime)
         .WithLoadSimulations(new[]
         {
-          Simulation.InjectPerSec(_initRate, _initDuration)
+          Simulation.KeepConstant(_initRate, _initDuration)
         });
     }
 
@@ -130,10 +130,10 @@ namespace LT.DigitalOffice.LoadTesting.Helpers
       _projectController = new(settings.Token);
     }
 
-    public override async Task Run()
+    public override async Task RunAsync()
     {
       List<int> rights = JsonConvert.DeserializeObject<OperationResultResponse<List<RightInfo>>>(
-        await (await _rightsController.GetRightsList()).Content.ReadAsStringAsync())?
+        await (await _rightsController.GetRightsList())?.Content.ReadAsStringAsync())?
         .Body?.Select(x => x.RightId).ToList();
 
       foreach (var right in rights)
@@ -153,7 +153,7 @@ namespace LT.DigitalOffice.LoadTesting.Helpers
       }
 
       List<Guid> rolesIds = JsonConvert.DeserializeObject<FindResultResponse<RoleInfo>>(await
-       (await _rolesController.Find(0, int.MaxValue)).Content.ReadAsStringAsync())
+       (await _rolesController.Find(0, int.MaxValue))?.Content.ReadAsStringAsync())
         .Body?.Select(x => x.Id).ToList();
 
       Guid? departmentId = JsonConvert.DeserializeObject<OperationResultResponse<Guid?>>(await

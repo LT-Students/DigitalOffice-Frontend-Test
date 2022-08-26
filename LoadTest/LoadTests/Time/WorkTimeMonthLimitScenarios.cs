@@ -1,15 +1,11 @@
 ﻿using DigitalOffice.LoadTesting.Models;
-using DigitalOffice.LoadTesting.Models.Responses.Templates;
-using DigitalOffice.LoadTesting.Models.Time.Models;
 using DigitalOffice.LoadTesting.Services;
 using DigitalOffice.LoadTesting.Services.Time;
 using NBomber.Configuration;
 using NBomber.Contracts;
 using NBomber.CSharp;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 
 namespace DigitalOffice.LoadTesting.Scenarios.Time
@@ -33,21 +29,21 @@ namespace DigitalOffice.LoadTesting.Scenarios.Time
         .WithWarmUpDuration(_warmUpTime)
         .WithLoadSimulations(new[]
         {
-          Simulation.InjectPerSec(_rate, _during)
+          Simulation.KeepConstant(_rate, _during)
         });
     }
 
     private Scenario Edit(Guid worktimeMonthLimitId, List<(string property, string newValue)> changes, HttpStatusCode expected)
     {
       var correct = Step.Create("edit", async context =>
-        CreateResponse(await _limitController.Edit(worktimeMonthLimitId, changes), expected));
+        CreateResponse(await _limitController.Edit(worktimeMonthLimitId, changes), expected), timeout: _responseTimeout);
 
       return ScenarioBuilder
         .CreateScenario("edit_worktimemonthlimit", correct)
         .WithWarmUpDuration(_warmUpTime)
         .WithLoadSimulations(new[]
         {
-          Simulation.InjectPerSec(_rate, _during)
+          Simulation.KeepConstant(_rate, _during)
         });
     }
 
@@ -59,17 +55,10 @@ namespace DigitalOffice.LoadTesting.Scenarios.Time
 
     public override void Run()
     {
-      Guid? worktimeMonthLimitId = JsonConvert
-        .DeserializeObject<FindResultResponse<WorkTimeMonthLimitInfo>>(
-        _limitController.Find(new()).Result.Content.ReadAsStringAsync().Result)?
-        .Body?
-        .FirstOrDefault()?
-        .Id;
-
       NBomberRunner
         .RegisterScenarios(Find())
         .WithReportFolder($"{_path}/find_worktimemonthlimits")
-        .WithReportFileName("find")
+        .WithReportFileName("find_monthLimits")
         .WithReportFormats(ReportFormat.Txt, ReportFormat.Html)
         .Run();
     }

@@ -1,9 +1,9 @@
 ﻿using DigitalOffice.LoadTesting.Helpers;
 using DigitalOffice.LoadTesting.Models;
 using DigitalOffice.LoadTesting.Models.Responses.Templates;
-using DigitalOffice.LoadTesting.Models.Rights.Responses;
-using DigitalOffice.LoadTesting.Services;
+using DigitalOffice.LoadTesting.Models.Rights.Models;
 using DigitalOffice.LoadTesting.Services.User;
+using LT.DigitalOffice.LoadTesting.LoadTests;
 using LT.DigitalOffice.LoadTesting.Models.Rights.Requests;
 using NBomber.Configuration;
 using NBomber.Contracts;
@@ -13,24 +13,25 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 
 namespace DigitalOffice.LoadTesting.Scenarios.Rights
 {
-  public class RolesScenarios : BaseScenarioCreator
+  public class RolesScenarios : BaseScenarioCreatorAsync
   {
     private readonly RolesController _rolesController;
 
     private Scenario Get(List<Guid> rolesIds, string locale = "ru", HttpStatusCode expected = HttpStatusCode.OK)
     {
       var correct = Step.Create("get", async context =>
-        CreateResponse(await _rolesController.Get(rolesIds[Random.Shared.Next(rolesIds.Count)], locale), expected));
+        CreateResponse(await _rolesController.Get(rolesIds[Random.Shared.Next(rolesIds.Count)], locale), expected), timeout: _responseTimeout);
 
       return ScenarioBuilder
         .CreateScenario("get_role", correct)
         .WithWarmUpDuration(_warmUpTime)
         .WithLoadSimulations(new[]
         {
-          Simulation.InjectPerSec(_rate, _during)
+          Simulation.KeepConstant(_rate, _during)
         });
     }
 
@@ -40,14 +41,15 @@ namespace DigitalOffice.LoadTesting.Scenarios.Rights
         CreateResponse(await _rolesController.Find(
           skipCount: Random.Shared.Next(50),
           takeCount: Random.Shared.Next(int.MaxValue)),
-        expected));
+        expected),
+        timeout: _responseTimeout);
 
       return ScenarioBuilder
         .CreateScenario("find_roles", correct)
         .WithWarmUpDuration(_warmUpTime)
         .WithLoadSimulations(new[]
         {
-          Simulation.InjectPerSec(_rate, _during)
+          Simulation.KeepConstant(_rate, _during)
         });
     }
 
@@ -73,7 +75,7 @@ namespace DigitalOffice.LoadTesting.Scenarios.Rights
         .WithWarmUpDuration(_warmUpTime)
         .WithLoadSimulations(new[]
         {
-          Simulation.InjectPerSec(_rate, _during)
+          Simulation.KeepConstant(_rate, _during)
         });
     }
 
@@ -83,29 +85,29 @@ namespace DigitalOffice.LoadTesting.Scenarios.Rights
       _rolesController = new(settings.Token);
     }
 
-    public override void Run()
+    public override async Task RunAsync()
     {
       List<Guid> rolesIds = JsonConvert
-        .DeserializeObject<FindResultResponse<RoleResponse>>(
-          _rolesController.Find(0, 1).Result.Content.ReadAsStringAsync().Result)?
-        .Body?.Select(x => x.Role.Id).ToList();
+        .DeserializeObject<FindResultResponse<RoleInfo>>(await
+          (await _rolesController.Find(0, 1))?.Content.ReadAsStringAsync())?
+        .Body?.Select(x => x.Id).ToList();
 
       if (rolesIds is not null && rolesIds.Any())
       {
         NBomberRunner
         .RegisterScenarios(Get(rolesIds))
         .WithReportFolder($"{_path}/get_role")
-        .WithReportFileName("get")
+        .WithReportFileName("get_roles")
         .WithReportFormats(ReportFormat.Txt, ReportFormat.Html)
         .Run();
       }
 
       NBomberRunner
-          .RegisterScenarios(Find())
-          .WithReportFolder($"{_path}/find_roles")
-          .WithReportFileName("find")
-          .WithReportFormats(ReportFormat.Txt, ReportFormat.Html)
-          .Run();
+        .RegisterScenarios(Find())
+        .WithReportFolder($"{_path}/find_roles")
+        .WithReportFileName("find_roles")
+        .WithReportFormats(ReportFormat.Txt, ReportFormat.Html)
+        .Run();
     }
   }
 }

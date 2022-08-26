@@ -1,9 +1,8 @@
 ﻿using DigitalOffice.LoadTesting.Models;
 using DigitalOffice.LoadTesting.Models.Responses.Templates;
-using DigitalOffice.LoadTesting.Models.Time.Requests;
 using DigitalOffice.LoadTesting.Models.Time.Responses;
-using DigitalOffice.LoadTesting.Services;
 using DigitalOffice.LoadTesting.Services.Time;
+using LT.DigitalOffice.LoadTesting.LoadTests;
 using NBomber.Configuration;
 using NBomber.Contracts;
 using NBomber.CSharp;
@@ -12,10 +11,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 
 namespace DigitalOffice.LoadTesting.Scenarios.Time
 {
-  public class LeaveTimeScenarios : BaseScenarioCreator
+  public class LeaveTimeScenarios : BaseScenarioCreatorAsync
   {
     private readonly LeaveTimeController _leaveTimeController;
 
@@ -27,28 +27,29 @@ namespace DigitalOffice.LoadTesting.Scenarios.Time
           {
             SkipCount = Random.Shared.Next(50),
             TakeCount = Random.Shared.Next(int.MaxValue)
-          }), expected));
+          }), expected),
+          timeout: _responseTimeout);
 
       return ScenarioBuilder
         .CreateScenario("find_leavetimes", correct)
         .WithWarmUpDuration(_warmUpTime)
         .WithLoadSimulations(new[]
         {
-          Simulation.InjectPerSec(_rate, _during)
+          Simulation.KeepConstant(_rate, _during)
         });
     }
 
     private Scenario Edit(Guid leaveTimeId, List<(string property, string newValue)> changes, HttpStatusCode expected)
     {
       var correct = Step.Create("edit", async context =>
-        CreateResponse(await _leaveTimeController.Edit(leaveTimeId, changes), expected));
+        CreateResponse(await _leaveTimeController.Edit(leaveTimeId, changes), expected), timeout: _responseTimeout);
 
       return ScenarioBuilder
         .CreateScenario("edit_leavetime", correct)
         .WithWarmUpDuration(_warmUpTime)
         .WithLoadSimulations(new[]
         {
-          Simulation.InjectPerSec(_rate, _during)
+          Simulation.KeepConstant(_rate, _during)
         });
     }
 
@@ -58,14 +59,14 @@ namespace DigitalOffice.LoadTesting.Scenarios.Time
       _leaveTimeController = new(settings.Token);
     }
 
-    public override void Run()
+    public override async Task RunAsync()
     {
       Guid? leaveTimeId = JsonConvert
-        .DeserializeObject<FindResultResponse<LeaveTimeResponse>>(
-          _leaveTimeController.Find(new() { SkipCount = 0, TakeCount = 1 }).Result.Content.ReadAsStringAsync().Result)?
+        .DeserializeObject<FindResultResponse<LeaveTimeResponse>>(await
+          (await _leaveTimeController.Find(new() { SkipCount = 0, TakeCount = 1 }))?.Content.ReadAsStringAsync())?
         .Body?.FirstOrDefault()?.LeaveTime.Id;
 
-      if (leaveTimeId.HasValue)
+      /*if (leaveTimeId.HasValue)
       {
         NBomberRunner
         .RegisterScenarios(
@@ -77,15 +78,15 @@ namespace DigitalOffice.LoadTesting.Scenarios.Time
             },
             HttpStatusCode.OK))
         .WithReportFolder($"{_path}/edit_leavetime")
-        .WithReportFileName("correct_edit")
+        .WithReportFileName("edit_leaveTime")
         .WithReportFormats(ReportFormat.Txt, ReportFormat.Html)
         .Run();
-      }
+      }*/
 
       NBomberRunner
         .RegisterScenarios(Find())
         .WithReportFolder($"{_path}/find_leavetimes")
-        .WithReportFileName("correct_find")
+        .WithReportFileName("find_leaveTimes")
         .WithReportFormats(ReportFormat.Txt, ReportFormat.Html)
         .Run();
     }

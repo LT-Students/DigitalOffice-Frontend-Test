@@ -37,6 +37,6 @@ namespace LT.DigitalOffice.LoadTesting.LoadTests
       _httpClient.DefaultRequestHeaders.Add("token", settings.Token);
     }
 
-    public abstract Task Run();
+    public abstract Task RunAsync();
   }
 }

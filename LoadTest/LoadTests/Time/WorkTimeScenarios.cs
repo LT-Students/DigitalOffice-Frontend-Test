@@ -28,28 +28,29 @@ namespace DigitalOffice.LoadTesting.Scenarios.Time
           {
             SkipCount = Random.Shared.Next(50),
             TakeCount = Random.Shared.Next(int.MaxValue)
-          }), expected));
+          }), expected),
+          timeout: _responseTimeout);
 
       return ScenarioBuilder
         .CreateScenario("find_worktimes", correct)
         .WithWarmUpDuration(_warmUpTime)
         .WithLoadSimulations(new[]
         {
-          Simulation.InjectPerSec(_rate, _during)
+          Simulation.KeepConstant(_rate, _during)
         });
     }
 
     private Scenario Edit(Guid worktimeId, List<(string property, string newValue)> changes, HttpStatusCode expected)
     {
       var correct = Step.Create("edit", async context =>
-        CreateResponse(await _workTimeController.Edit(worktimeId, changes), expected));
+        CreateResponse(await _workTimeController.Edit(worktimeId, changes), expected), timeout: _responseTimeout);
 
       return ScenarioBuilder
         .CreateScenario("edit_worktime", correct)
         .WithWarmUpDuration(_warmUpTime)
         .WithLoadSimulations(new[]
         {
-          Simulation.InjectPerSec(_rate, _during)
+          Simulation.KeepConstant(_rate, _during)
         });
     }
 
@@ -61,7 +62,7 @@ namespace DigitalOffice.LoadTesting.Scenarios.Time
 
     public override void Run()
     {
-      Guid? worktimeId = JsonConvert
+      /*Guid? worktimeId = JsonConvert
         .DeserializeObject<FindResultResponse<WorkTimeResponse>>(
         _workTimeController.Find(new FindWorkTimesFilter { SkipCount = 0, TakeCount = 1 }).Result.Content.ReadAsStringAsync().Result)
         .Body
@@ -80,15 +81,15 @@ namespace DigitalOffice.LoadTesting.Scenarios.Time
             },
             HttpStatusCode.OK))
         .WithReportFolder($"{_path}/edit_worktime")
-        .WithReportFileName("correct_edit")
+        .WithReportFileName("edit_worktime")
         .WithReportFormats(ReportFormat.Txt, ReportFormat.Html)
         .Run();
-      }
+      }*/
 
       NBomberRunner
         .RegisterScenarios(Find())
         .WithReportFolder($"{_path}/find_worktimes")
-        .WithReportFileName("correct_find")
+        .WithReportFileName("find_worktimes")
         .WithReportFormats(ReportFormat.Txt, ReportFormat.Html)
         .Run();
     }

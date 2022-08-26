@@ -3,10 +3,8 @@ using DigitalOffice.LoadTesting.Models;
 using DigitalOffice.LoadTesting.Models.Project.Enums;
 using DigitalOffice.LoadTesting.Models.Project.Models;
 using DigitalOffice.LoadTesting.Models.Responses.Templates;
-using DigitalOffice.LoadTesting.Services;
 using DigitalOffice.LoadTesting.Services.Project;
-using LT.DigitalOffice.LoadTesting.Models.Project.Requests.Project;
-using LT.DigitalOffice.LoadTesting.Models.Project.Requests.Project.Filters;
+using LT.DigitalOffice.LoadTesting.LoadTests;
 using LT.DigitalOffice.LoadTesting.Models.Project.Requests.User;
 using NBomber.Configuration;
 using NBomber.Contracts;
@@ -16,10 +14,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 
 namespace DigitalOffice.LoadTesting.Scenarios.Project
 {
-  public class ProjectScenarios : BaseScenarioCreator
+  public class ProjectScenarios : BaseScenarioCreatorAsync
   {
     private readonly ProjectController _projectController;
 
@@ -31,14 +30,14 @@ namespace DigitalOffice.LoadTesting.Scenarios.Project
         CreateResponse(await _projectController.Get(new()
         {
           ProjectId = projectsIds[Random.Shared.Next(projectsIds.Count)]
-        }), expected));
+        }), expected), timeout: _responseTimeout);
 
       return ScenarioBuilder
         .CreateScenario("get_projets", correct)
         .WithWarmUpDuration(_warmUpTime)
         .WithLoadSimulations(new[]
         {
-          Simulation.InjectPerSec(_rate, _during)
+          Simulation.KeepConstant(_rate, _during)
         });
     }
 
@@ -49,14 +48,15 @@ namespace DigitalOffice.LoadTesting.Scenarios.Project
         {
           SkipCount = Random.Shared.Next(50),
           TakeCount = Random.Shared.Next(int.MaxValue)
-        }), expected));
+        }), expected)
+        , timeout: _responseTimeout);
 
       return ScenarioBuilder
         .CreateScenario("find_projects", correct)
         .WithWarmUpDuration(_warmUpTime)
         .WithLoadSimulations(new[]
         {
-          Simulation.InjectPerSec(_rate, _during)
+          Simulation.KeepConstant(_rate, _during)
         });
     }
 
@@ -78,14 +78,14 @@ namespace DigitalOffice.LoadTesting.Scenarios.Project
           ProjectImages = images ?? new(),
           Users = users ?? new()
         }), expected);
-      });
+      }, timeout: _responseTimeout);
 
       return ScenarioBuilder
         .CreateScenario("create_project", correct)
         .WithWarmUpDuration(_warmUpTime)
         .WithLoadSimulations(new[]
         {
-          Simulation.InjectPerSec(_rate, _during)
+          Simulation.KeepConstant(_rate, _during)
         });
     }
 
@@ -95,11 +95,11 @@ namespace DigitalOffice.LoadTesting.Scenarios.Project
       _projectController = new(settings.Token);
     }
 
-    public override void Run()
+    public override async Task RunAsync()
     {
       List<Guid> projectsIds = JsonConvert
-        .DeserializeObject<FindResultResponse<ProjectInfo>>(
-          _projectController.Find(new() { SkipCount = 0, TakeCount = int.MaxValue}).Result.Content.ReadAsStringAsync().Result)?
+        .DeserializeObject<FindResultResponse<ProjectInfo>>(await
+          (await _projectController.Find(new() {SkipCount = 0, TakeCount = int.MaxValue}))?.Content.ReadAsStringAsync())?
         .Body?.Select(x => x.Id).ToList();
 
       if (projectsIds is not null && projectsIds.Any())
@@ -107,7 +107,7 @@ namespace DigitalOffice.LoadTesting.Scenarios.Project
         NBomberRunner
           .RegisterScenarios(Get(projectsIds))
           .WithReportFolder($"{_path}/get_project")
-          .WithReportFileName("get")
+          .WithReportFileName("get_projects")
           .WithReportFormats(ReportFormat.Txt, ReportFormat.Html)
           .Run();
       }
@@ -115,16 +115,16 @@ namespace DigitalOffice.LoadTesting.Scenarios.Project
       NBomberRunner
         .RegisterScenarios(Find())
         .WithReportFolder($"{_path}/find_projects")
-        .WithReportFileName("find")
+        .WithReportFileName("find_projects")
         .WithReportFormats(ReportFormat.Txt, ReportFormat.Html)
         .Run();
 
-      NBomberRunner
+      /*NBomberRunner
         .RegisterScenarios(Create())
         .WithReportFolder($"{_path}/create_project")
         .WithReportFileName("create")
         .WithReportFormats(ReportFormat.Txt, ReportFormat.Html)
-        .Run();
+        .Run();*/
     }
   }
 }

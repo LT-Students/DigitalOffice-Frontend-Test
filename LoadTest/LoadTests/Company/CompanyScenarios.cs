@@ -16,28 +16,28 @@ namespace DigitalOffice.LoadTesting.Scenarios.Company
     private Scenario Get(HttpStatusCode expected = HttpStatusCode.OK)
     {
       var correct = Step.Create("get", async context =>
-        CreateResponse(await _companyController.Get(), expected));
+        CreateResponse(await _companyController.Get(), expected), timeout: _responseTimeout);
 
       return ScenarioBuilder
         .CreateScenario("get_company", correct)
         .WithWarmUpDuration(_warmUpTime)
         .WithLoadSimulations(new[]
         {
-          Simulation.InjectPerSec(_rate, _during)
+          Simulation.KeepConstant(_rate, _during)
         });
     }
 
     private Scenario Edit(List<(string property, string newValue)> changes, HttpStatusCode expected)
     {
       var correct = Step.Create("edit", async context =>
-        CreateResponse(await _companyController.Edit(changes), expected));
+        CreateResponse(await _companyController.Edit(changes), expected), timeout: _responseTimeout);
 
       return ScenarioBuilder
         .CreateScenario("edit_company", correct)
         .WithWarmUpDuration(_warmUpTime)
         .WithLoadSimulations(new[]
         {
-          Simulation.InjectPerSec(_rate, _during)
+          Simulation.KeepConstant(_rate, _during)
         });
     }
 
@@ -52,7 +52,7 @@ namespace DigitalOffice.LoadTesting.Scenarios.Company
       NBomberRunner
         .RegisterScenarios(Get(HttpStatusCode.OK))
         .WithReportFolder($"{_path}/get_company")
-        .WithReportFileName("correct_get")
+        .WithReportFileName("get_company")
         .WithReportFormats(ReportFormat.Txt, ReportFormat.Html)
         .Run();
     }

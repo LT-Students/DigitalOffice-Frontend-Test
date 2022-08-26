@@ -16,10 +16,12 @@ using System.Linq;
 using System.Net;
 using LT.DigitalOffice.LoadTesting.Models.Company.Responses;
 using LT.DigitalOffice.LoadTesting.Models.Common.Enums;
+using LT.DigitalOffice.LoadTesting.LoadTests;
+using System.Threading.Tasks;
 
 namespace DigitalOffice.LoadTesting.Services.User
 {
-  public class UsersScenarios : BaseScenarioCreator
+  public class UsersScenarios : BaseScenarioCreatorAsync
   {
     private readonly UsersController _usersController;
     private readonly GenderController _genderController;
@@ -43,7 +45,7 @@ namespace DigitalOffice.LoadTesting.Services.User
         .WithWarmUpDuration(_warmUpTime)
         .WithLoadSimulations(new[]
         {
-          Simulation.InjectPerSec(_rate, _during)
+          Simulation.KeepConstant(_rate, _during)
         });
     }
 
@@ -64,7 +66,7 @@ namespace DigitalOffice.LoadTesting.Services.User
         .WithWarmUpDuration(_warmUpTime)
         .WithLoadSimulations(new[]
         {
-          Simulation.InjectPerSec(_rate, _during)
+          Simulation.KeepConstant(_rate, _during)
         });
     }
 
@@ -88,7 +90,7 @@ namespace DigitalOffice.LoadTesting.Services.User
         .WithWarmUpDuration(_warmUpTime)
         .WithLoadSimulations(new[]
         {
-          Simulation.InjectPerSec(_rate, _during)
+          Simulation.KeepConstant(_rate, _during)
         });
     }
 
@@ -138,7 +140,7 @@ namespace DigitalOffice.LoadTesting.Services.User
         .WithWarmUpDuration(_warmUpTime)
         .WithLoadSimulations(new[]
         {
-          Simulation.InjectPerSec(_rate, _during)
+          Simulation.KeepConstant(_rate, _during)
         });
     }
 
@@ -152,42 +154,42 @@ namespace DigitalOffice.LoadTesting.Services.User
       _companyController = new(settings.Token);
     }
 
-    public override void Run()
+    public override async Task RunAsync()
     {
       #region preparation
 
       List<Guid> usersIds = JsonConvert
-        .DeserializeObject<FindResultResponse<UserInfo>>(
-          _usersController.Find(
+        .DeserializeObject<FindResultResponse<UserInfo>>(await
+          (await _usersController.Find(
             skipCount: 0,
             takeCount: int.MaxValue,
-            isActive: true).Result.Content.ReadAsStringAsync().Result)?
+            isActive: true))?.Content.ReadAsStringAsync())?
           .Body?.Select(x => x.Id)?.ToList();
 
       List<Guid> gendersIds = JsonConvert
-        .DeserializeObject<FindResultResponse<GenderInfo>>(
-          _genderController.Find(0, int.MaxValue).Result.Content.ReadAsStringAsync().Result)?
+        .DeserializeObject<FindResultResponse<GenderInfo>>(await
+          (await _genderController.Find(0, int.MaxValue))?.Content.ReadAsStringAsync())?
         .Body?.Select(x => x.Id)?.ToList();
 
       Guid? departmentId = JsonConvert
-        .DeserializeObject<FindResultResponse<DM.DepartmentInfo>>(
-          _departmentController.Find(
+        .DeserializeObject<FindResultResponse<DM.DepartmentInfo>>(await
+          (await _departmentController.Find(
             skipCount: 0,
             takeCount: 1,
-            isActive: true).Result.Content.ReadAsStringAsync().Result)?
+            isActive: true))?.Content.ReadAsStringAsync())?
         .Body?.FirstOrDefault()?.Id;
 
       Guid? roleId = JsonConvert
-        .DeserializeObject<FindResultResponse<RM.RoleInfo>>(
-          _rolesController.Find(
+        .DeserializeObject<FindResultResponse<RM.RoleInfo>>(await
+          (await _rolesController.Find(
             skipCount: 0,
             takeCount: 1,
-            includeDeactivated: false).Result.Content.ReadAsStringAsync().Result)?
+            includeDeactivated: false))?.Content.ReadAsStringAsync())?
         .Body?.FirstOrDefault()?.Id;
 
       Guid? companyId = JsonConvert
-        .DeserializeObject<OperationResultResponse<CompanyResponse>>(
-          _companyController.Get().Result.Content.ReadAsStringAsync().Result)?
+        .DeserializeObject<OperationResultResponse<CompanyResponse>>(await
+          (await _companyController.Get())?.Content.ReadAsStringAsync())?
         .Body?.Id;
 
       List <(string property, string newValue)> changesForUser = new()
@@ -200,7 +202,7 @@ namespace DigitalOffice.LoadTesting.Services.User
       NBomberRunner
         .RegisterScenarios(Find(HttpStatusCode.OK))
         .WithReportFolder($"{_path}/find_user")
-        .WithReportFileName("find")
+        .WithReportFileName("find_users")
         .WithReportFormats(ReportFormat.Txt, ReportFormat.Html)
         .Run();
 
@@ -209,12 +211,12 @@ namespace DigitalOffice.LoadTesting.Services.User
         NBomberRunner
         .RegisterScenarios(Get(usersIds, HttpStatusCode.OK))
         .WithReportFolder($"{_path}/get_user")
-        .WithReportFileName("get")
+        .WithReportFileName("get_user")
         .WithReportFormats(ReportFormat.Txt, ReportFormat.Html)
         .Run();
       }
 
-      NBomberRunner
+      /*NBomberRunner
         .RegisterScenarios(
           Create(
             departmentId: departmentId,
@@ -231,7 +233,7 @@ namespace DigitalOffice.LoadTesting.Services.User
         .WithReportFolder($"{_path}/edit_user")
         .WithReportFileName("edit")
         .WithReportFormats(ReportFormat.Txt, ReportFormat.Html)
-        .Run();
+        .Run();*/
     }
   }
 }

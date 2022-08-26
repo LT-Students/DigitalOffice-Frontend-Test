@@ -31,7 +31,7 @@ namespace DigitalOffice.LoadTesting.Scenarios.Time
                 .WithWarmUpDuration(_warmUpTime)
                 .WithLoadSimulations(new[]
                 {
-                    Simulation.InjectPerSec(_rate, _during)
+                    Simulation.KeepConstant(_rate, _during)
                 });
         }
 
@@ -46,7 +46,7 @@ namespace DigitalOffice.LoadTesting.Scenarios.Time
                 .WithWarmUpDuration(_warmUpTime)
                 .WithLoadSimulations(new[]
                 {
-                    Simulation.InjectPerSec(_rate, _during)
+                    Simulation.KeepConstant(_rate, _during)
                 });
         }
 
