@@ -2,11 +2,11 @@
 
 namespace DigitalOffice.LoadTesting.Helpers
 {
-    public static class CreatorUniqueName
+  public static class CreatorUniqueName
+  {
+    public static string Generate()
     {
-        public static string Generate()
-        {
-            return $"LoadTest{Guid.NewGuid()}{Guid.NewGuid()}";
-        }
+      return $"LoadTest{Guid.NewGuid()}{Guid.NewGuid()}";
     }
+  }
 }

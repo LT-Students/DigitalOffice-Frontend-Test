@@ -1,16 +1,22 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
+		<ServerGarbageCollection>true</ServerGarbageCollection>
+		<ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
+
+		<AssemblyName>LT.DigitalOffice.$(MSBuildProjectName)</AssemblyName>
+		<RootNamespace>LT.DigitalOffice.$(MSBuildProjectName)</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NBomber" Version="2.1.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Services.Client" Version="16.170.0" />
+    <PackageReference Include="NBomber" Version="2.1.5" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Scenarios\Image.Designer.cs">
+    <Compile Update="LoadTests\Image.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>Image.resx</DependentUpon>
@@ -18,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Update="Scenarios\Image.resx">
+    <EmbeddedResource Update="LoadTests\Image.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Image.Designer.cs</LastGenOutput>
     </EmbeddedResource>

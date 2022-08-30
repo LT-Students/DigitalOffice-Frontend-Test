@@ -3,10 +3,11 @@ using System;
 
 namespace DigitalOffice.LoadTesting.Models.Users.Models
 {
-    public record CommunicationInfo
-    {
-        public Guid Id { get; set; }
-        public CommunicationType Type { get; set; }
-        public string Value { get; set; }
-    }
+  public record CommunicationInfo
+  {
+    public Guid Id { get; set; }
+    public CommunicationType Type { get; set; }
+    public string Value { get; set; }
+    public bool IsConfirmed { get; set; }
+  }
 }

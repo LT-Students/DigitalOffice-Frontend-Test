@@ -1,17 +1,15 @@
-﻿using DigitalOffice.LoadTesting.Models.Rights.Responses;
+﻿using LT.DigitalOffice.LoadTesting.Models.Rights.Models;
 using System;
 using System.Collections.Generic;
 
 namespace DigitalOffice.LoadTesting.Models.Rights.Models
 {
-    public record RoleInfo
-    {
-        public Guid Id { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public Guid CreatedBy { get; set; }
-        public IEnumerable<RightResponse> Rights { get; set; }
-        public IEnumerable<UserInfo> Users { get; set; }
-    }
+  public record RoleInfo
+  {
+    public Guid Id { get; set; }
+    public bool IsActive { get; set; }
+    public UserInfo CreatedBy { get; set; }
+    public IEnumerable<RightInfo> Rights { get; set; }
+    public IEnumerable<RoleLocalizationInfo> Localizations { get; set; }
+  }
 }

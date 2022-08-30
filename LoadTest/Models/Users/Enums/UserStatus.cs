@@ -3,12 +3,12 @@ using Newtonsoft.Json.Converters;
 
 namespace DigitalOffice.LoadTesting.Models.Users.Enums
 {
-    [JsonConverter(typeof(StringEnumConverter))]
-    public enum UserStatus
-    {
-        Vacation,
-        Sick,
-        WorkFromOffice,
-        WorkFromHome
-    }
+  [JsonConverter(typeof(StringEnumConverter))]
+  public enum UserStatus
+  {
+    Vacation,
+    Sick,
+    WorkFromOffice,
+    WorkFromHome
+  }
 }
