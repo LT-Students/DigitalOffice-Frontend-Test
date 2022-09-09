@@ -15,7 +15,7 @@ namespace LT.DigitalOffice.LoadTesting.Services.Admin
     {
       _httpClient = new HttpClient();
 #if DEBUG
-      _httpClient.BaseAddress = new Uri(GUIControllerDevUrl);
+      _httpClient.BaseAddress = new Uri(GuiControllerDevUrl);
 #else
       _httpClient.BaseAddress = new Uri(GuiControllerProdUrl);
 #endif
