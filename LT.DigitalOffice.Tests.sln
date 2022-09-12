@@ -24,6 +24,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CloudAPITestProject", "Clou
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LoadTesting", "LoadTest\LoadTesting.csproj", "{FFAD6BD9-3AF3-468D-BAE2-8D13DA347367}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.IntegrationTesting", "Tests.IntegrationTesting\Tests.IntegrationTesting.csproj", "{390FEEA0-785D-4E9F-9603-C35555982F2F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -44,6 +46,10 @@ Global
 		{FFAD6BD9-3AF3-468D-BAE2-8D13DA347367}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FFAD6BD9-3AF3-468D-BAE2-8D13DA347367}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FFAD6BD9-3AF3-468D-BAE2-8D13DA347367}.Release|Any CPU.Build.0 = Release|Any CPU
+		{390FEEA0-785D-4E9F-9603-C35555982F2F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{390FEEA0-785D-4E9F-9603-C35555982F2F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{390FEEA0-785D-4E9F-9603-C35555982F2F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{390FEEA0-785D-4E9F-9603-C35555982F2F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -53,6 +59,7 @@ Global
 		{33E3D1CF-7CAB-435E-8B71-C51E7DAFDAE6} = {3D9A71C3-2A3A-48C3-BED9-738A4CC4B204}
 		{4E20142E-C21C-4E9C-9569-988256E38921} = {3D9A71C3-2A3A-48C3-BED9-738A4CC4B204}
 		{FFAD6BD9-3AF3-468D-BAE2-8D13DA347367} = {3D9A71C3-2A3A-48C3-BED9-738A4CC4B204}
+		{390FEEA0-785D-4E9F-9603-C35555982F2F} = {9C22DB73-4682-4FF8-A747-505C0E781D41}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A2257EDB-7202-462B-9B51-D2AE6AB3B804}
