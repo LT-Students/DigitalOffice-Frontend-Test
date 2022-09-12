@@ -27,7 +27,6 @@ namespace Tests.HealthCheck
         public IConfiguration Configuration { get; }
 
         private readonly HealthCheckEndpointsConfig _healthCheckConfig;
-        private readonly AuthLoginConfig _authLoginConfig;
         private readonly RabbitMqConfig _rabbitMqConfig;
         private readonly BaseServiceInfoConfig _serviceInfoConfig;
         private readonly ILogger<SmtpGetter> _logger;
@@ -69,18 +68,6 @@ namespace Tests.HealthCheck
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-
-            _authLoginConfig = new AuthLoginConfig()
-            {
-                UriString = Environment.GetEnvironmentVariable("UriString") ??
-                    Configuration.GetSection(AuthLoginConfig.SectionName).GetValue<string>("UriString"),
-
-                Login = Environment.GetEnvironmentVariable("Login") ??
-                    Configuration.GetSection(AuthLoginConfig.SectionName).GetValue<string>("Login"),
-
-                Password = Environment.GetEnvironmentVariable("Password") ??
-                    Configuration.GetSection(AuthLoginConfig.SectionName).GetValue<string>("Password")
-            };
 
             _healthCheckConfig = Configuration
                 .GetSection(HealthCheckEndpointsConfig.SectionName)
@@ -138,8 +125,6 @@ namespace Tests.HealthCheck
                     {
                         setup.SetEvaluationTimeInSeconds(evaluationTimeSeconds);
                     }
-
-                    setup.UseApiEndpointHttpMessageHandler(handler => new CustomHttpClientHandler(_authLoginConfig));
 
                     _servicesInfo = _healthCheckConfig
                         .GetType()
