@@ -16,6 +16,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Tests.HealthCheck.Models.Configurations;
 using Tests.HealthCheck.Models.Helpers;
@@ -164,6 +165,10 @@ namespace Tests.HealthCheck
                 endpoints.MapControllers();
                 endpoints.MapHealthChecksUI();
             });
+
+            //TODO: Remove
+            var client = new HttpClient();
+            client.Send(new HttpRequestMessage(HttpMethod.Get, "https://department.dev.ltdo.xyz/department/get"));
 
             IServiceProvider serviceProvider = app.ApplicationServices.GetRequiredService<IServiceProvider>();
 
