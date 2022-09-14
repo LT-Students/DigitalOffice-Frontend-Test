@@ -2,10 +2,8 @@ using HealthChecks.UI.Configuration;
 using HealthChecks.UI.Core;
 using LT.DigitalOffice.Kernel.BrokerSupport.Configurations;
 using LT.DigitalOffice.Kernel.BrokerSupport.Extensions;
-using LT.DigitalOffice.Kernel.BrokerSupport.Helpers;
 using LT.DigitalOffice.Kernel.Configurations;
 using LT.DigitalOffice.Models.Broker.Requests.Company;
-using LT.DigitalOffice.Tests.HealthCheck.Models.Helpers;
 using LT.DigitalOffice.Tests.Models.Dto.Configurations;
 using MassTransit;
 using Microsoft.AspNetCore.Builder;
@@ -16,14 +14,13 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
 using Tests.HealthCheck.Models.Configurations;
 using Tests.HealthCheck.Models.Helpers;
 
 namespace Tests.HealthCheck
 {
-    public class Startup
+  public class Startup
     {
         public IConfiguration Configuration { get; }
 
@@ -165,10 +162,6 @@ namespace Tests.HealthCheck
                 endpoints.MapControllers();
                 endpoints.MapHealthChecksUI();
             });
-
-            //TODO: Remove
-            var client = new HttpClient();
-            client.Send(new HttpRequestMessage(HttpMethod.Get, "https://department.dev.ltdo.xyz/department/get"));
 
             IServiceProvider serviceProvider = app.ApplicationServices.GetRequiredService<IServiceProvider>();
 
