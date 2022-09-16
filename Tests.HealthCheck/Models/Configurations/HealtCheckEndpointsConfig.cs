@@ -18,8 +18,8 @@ namespace Tests.HealthCheck.Models.Configurations
     //public string TaskHealthCheckEndpoint { get; set; }
     //public string EmailHealthCheckEndpoint { get; set; }
     //public string PositionHealthCheckEndpoint { get; set; }
-    public string DepartmentHealthCheckEndpoint { get; set; }
-    //public string OfficeHealthCheckEndpoint { get; set; }
+    //public string DepartmentHealthCheckEndpoint { get; set; }
+    public string OfficeHealthCheckEndpoint { get; set; }
     //public string EducationHealthCheckEndpoint { get; set; }
     //public string AdminHealthCheckEndpoint { get; set; }
     //public string ImageHealthCheckEndpoint { get; set; }
